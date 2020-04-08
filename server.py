@@ -7,12 +7,23 @@ from flask import Flask, url_for, render_template, jsonify, request, make_respon
 import webview
 import deemix.app.main as app
 
+class CustomFlask(Flask):
+	jinja_options = Flask.jinja_options.copy()
+	jinja_options.update(dict(
+	block_start_string='$$',
+	block_end_string='$$',
+	variable_start_string='$',
+	variable_end_string='$',
+	comment_start_string='$#',
+	comment_end_string='#$',
+))
+
 gui_dir = os.path.join(os.path.dirname(__file__), 'public')  # development path
 
 if not os.path.exists(gui_dir):  # frozen executable path
 	gui_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'public')
-print(gui_dir)
-server = Flask(__name__, static_folder=gui_dir, template_folder=gui_dir)
+
+server = CustomFlask(__name__, static_folder=gui_dir, template_folder=gui_dir)
 server.config['SEND_FILE_MAX_AGE_DEFAULT'] = 1  # disable caching
 
 @server.route('/')
@@ -30,10 +41,6 @@ def initialize():
 
 @server.route('/choose/path', methods=['POST'])
 def choose_path():
-	'''
-	Invoke a folder selection dialog here
-	:return:
-	'''
 	dirs = webview.windows[0].create_file_dialog(webview.FOLDER_DIALOG)
 	if dirs and len(dirs) > 0:
 		directory = dirs[0]
@@ -60,7 +67,7 @@ def open_url():
 @server.route('/search', methods=['POST'])
 def search():
 	data = json.loads(request.data)
-	return jsonify(app.search(data['term']))
+	return jsonify(app.mainSearch(data['term']))
 
 
 @server.route('/do/stuff', methods=['POST'])
