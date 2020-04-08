@@ -19,10 +19,8 @@ class CustomFlask(Flask):
 ))
 
 gui_dir = os.path.join(os.path.dirname(__file__), 'public')  # development path
-
 if not os.path.exists(gui_dir):  # frozen executable path
 	gui_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'public')
-
 server = CustomFlask(__name__, static_folder=gui_dir, template_folder=gui_dir)
 server.config['SEND_FILE_MAX_AGE_DEFAULT'] = 1  # disable caching
 
@@ -39,6 +37,18 @@ def initialize():
 		response = {'status': 'error'}
 	return jsonify(response)
 
+@server.route('/search', methods=['POST'])
+def search():
+	data = json.loads(request.data)
+	return jsonify(app.mainSearch(data['term']))
+
+@server.route('/download', methods=['POST'])
+def download():
+	data = json.loads(request.data)
+	app.downloadLink(data['url'])
+	return jsonify({})
+
+# Example code leftover, could be usefull later on
 @server.route('/choose/path', methods=['POST'])
 def choose_path():
 	dirs = webview.windows[0].create_file_dialog(webview.FOLDER_DIALOG)
@@ -57,22 +67,10 @@ def fullscreen():
 	webview.windows[0].toggle_fullscreen()
 	return jsonify({})
 
-
 @server.route('/open-url', methods=['POST'])
 def open_url():
 	url = request.json['url']
 	webbrowser.open_new_tab(url)
-	return jsonify({})
-
-@server.route('/search', methods=['POST'])
-def search():
-	data = json.loads(request.data)
-	return jsonify(app.mainSearch(data['term']))
-
-@server.route('/download', methods=['POST'])
-def download():
-	data = json.loads(request.data)
-	app.downloadLink(data['url'])
 	return jsonify({})
 
 @server.route('/do/stuff', methods=['POST'])
