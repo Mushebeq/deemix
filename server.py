@@ -69,6 +69,11 @@ def search():
 	data = json.loads(request.data)
 	return jsonify(app.mainSearch(data['term']))
 
+@server.route('/download', methods=['POST'])
+def download():
+	data = json.loads(request.data)
+	app.downloadLink(data['url'])
+	return jsonify({})
 
 @server.route('/do/stuff', methods=['POST'])
 def do_stuff():
