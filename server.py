@@ -37,10 +37,17 @@ def initialize():
 		response = {'status': 'error'}
 	return jsonify(response)
 
+@server.route('/mainsearch', methods=['POST'])
+def mainsearch():
+	data = json.loads(request.data)
+	return jsonify(app.mainSearch(data['term']))
+
 @server.route('/search', methods=['POST'])
 def search():
 	data = json.loads(request.data)
-	return jsonify(app.mainSearch(data['term']))
+	result = app.search(data['term'], data['type'], data['start'], data['nb'])
+	result['type'] = data['type']
+	return jsonify(result)
 
 @server.route('/download', methods=['POST'])
 def download():
