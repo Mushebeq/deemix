@@ -4,6 +4,8 @@ import webbrowser
 from functools import wraps
 
 from flask import Flask, url_for, render_template, jsonify, request, make_response
+from flask_socketio import SocketIO, emit
+import logging
 import webview
 import deemix.app.main as app
 
@@ -23,37 +25,37 @@ if not os.path.exists(gui_dir):  # frozen executable path
 	gui_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'public')
 server = CustomFlask(__name__, static_folder=gui_dir, template_folder=gui_dir)
 server.config['SEND_FILE_MAX_AGE_DEFAULT'] = 1  # disable caching
+socketio = SocketIO(server)
+
+serverLog = logging.getLogger('werkzeug')
+serverLog.disabled = True
+server.logger.disabled = True
 
 @server.route('/')
 def landing():
 	return render_template('index.html', token=webview.token)
 
-@server.route('/init', methods=['POST'])
-def initialize():
+@socketio.on('init')
+def handle_init():
 	can_start = app.initialize()
 	if can_start:
 		response = {'status': 'ok'}
 	else:
 		response = {'status': 'error'}
-	return jsonify(response)
 
-@server.route('/mainsearch', methods=['POST'])
-def mainsearch():
-	data = json.loads(request.data)
-	return jsonify(app.mainSearch(data['term']))
+@socketio.on('mainSearch')
+def mainSearch(data):
+	emit('mainSearch', app.mainSearch(data['term']))
 
-@server.route('/search', methods=['POST'])
-def search():
-	data = json.loads(request.data)
+@socketio.on('search')
+def search(data):
 	result = app.search(data['term'], data['type'], data['start'], data['nb'])
 	result['type'] = data['type']
-	return jsonify(result)
+	emit('search', result)
 
-@server.route('/download', methods=['POST'])
-def download():
-	data = json.loads(request.data)
-	app.downloadLink(data['url'])
-	return jsonify({})
+@socketio.on('addToQueue')
+def addToQueue(data):
+	app.addToQueue_link(data['url'], socket=socketio)
 
 # Example code leftover, could be usefull later on
 @server.route('/choose/path', methods=['POST'])
@@ -90,7 +92,7 @@ def do_stuff():
 	return jsonify(response)
 
 def run_server():
-	server.run(host='127.0.0.1', port=33333, threaded=True)
+	socketio.run(server, host='127.0.0.1', port=33333)
 
 if __name__ == '__main__':
 	run_server()
