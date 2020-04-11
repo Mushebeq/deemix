@@ -38,10 +38,7 @@ def landing():
 @socketio.on('init')
 def handle_init():
 	can_start = app.initialize()
-	if can_start:
-		response = {'status': 'ok'}
-	else:
-		response = {'status': 'error'}
+	emit('toast', {'msg': "App initialized!", 'icon': 'done'})
 
 @socketio.on('mainSearch')
 def mainSearch(data):
