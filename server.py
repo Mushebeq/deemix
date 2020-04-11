@@ -35,6 +35,13 @@ server.logger.disabled = True
 def landing():
 	return render_template('index.html', token=webview.token)
 
+@server.route('/shutdown')
+def closing():
+	app.shutdown(socket=socketio)
+	func = request.environ.get('werkzeug.server.shutdown')
+	func()
+	return 'server closed'
+
 @socketio.on('init')
 def handle_init():
 	can_start = app.initialize()
@@ -92,8 +99,9 @@ def do_stuff():
 		response = {'status': 'error'}
 	return jsonify(response)
 
-def run_server():
-	socketio.run(server, host='127.0.0.1', port=33333)
+def run_server(port):
+	print("Starting server at http://127.0.0.1:"+str(port))
+	socketio.run(server, host='127.0.0.1', port=port)
 
 if __name__ == '__main__':
-	run_server()
+	run_server(33333)
