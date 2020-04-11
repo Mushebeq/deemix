@@ -8,6 +8,7 @@ from flask_socketio import SocketIO, emit
 import logging
 import webview
 import deemix.app.main as app
+import time
 
 class CustomFlask(Flask):
 	jinja_options = Flask.jinja_options.copy()
@@ -44,8 +45,28 @@ def closing():
 
 @socketio.on('init')
 def handle_init():
-	can_start = app.initialize()
-	emit('toast', {'msg': "App initialized!", 'icon': 'done'})
+	result = app.initialize()
+	emit('initialization', result)
+
+@socketio.on('login')
+def login(arl):
+	result = app.login(arl)
+	emit('logged_in', {'status': result, 'arl': arl, 'user': app.getUser()})
+
+@socketio.on('loginpage')
+def login_app():
+	loginWindow = webview.create_window('Login into deezer.com', 'https://www.deezer.com/login', user_agent="Mozilla/5.0 (Linux; U; Android 4.0.3; ko-kr; LG-L160L Build/IML74K) AppleWebkit/534.30 (KHTML, like Gecko) Version/4.0 Mobile Safari/534.30")
+	while (loginWindow and loginWindow.get_current_url().startswith("https://www.deezer.com")):
+		time.sleep(1)
+	if loginWindow:
+		url = loginWindow.get_current_url()
+		loginWindow.destroy()
+		arl = url[url.find("arl%3D")+6:]
+		arl = arl[:arl.find("&")]
+		result = app.login(arl)
+		emit('logged_in', {'status': result, 'arl': arl, 'user': app.getUser()})
+	else:
+		emit('logged_in', {'status': 0})
 
 @socketio.on('mainSearch')
 def mainSearch(data):
