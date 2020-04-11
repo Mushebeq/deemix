@@ -54,6 +54,10 @@ def search(data):
 def addToQueue(data):
 	app.addToQueue_link(data['url'], socket=socketio)
 
+@socketio.on('removeFromQueue')
+def removeFromQueue(uuid):
+	app.removeFromQueue_link(uuid, socket=socketio)
+
 # Example code leftover, could be usefull later on
 @server.route('/choose/path', methods=['POST'])
 def choose_path():
