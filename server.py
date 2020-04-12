@@ -54,12 +54,33 @@ def handle_init():
 	emit('initialization', result)
 
 @socketio.on('login')
-def login(arl):
-	result = app.login(session['dz'], arl)
+def login(arl, force=False):
+	emit('toast', {'msg': "Logging in...", 'icon': 'loading', 'dismiss': False, 'id': "login-toast"})
+	if not session['dz'].logged_in:
+		result = session['dz'].login_via_arl(arl)
+	else:
+		if force:
+			session['dz'] = Deezer()
+			result = session['dz'].login_via_arl(arl)
+			if result == 1:
+				result = 3
+		else:
+			result = 2
 	emit('logged_in', {'status': result, 'arl': arl, 'user': app.getUser(session['dz'])})
+
+@socketio.on('logout')
+def logout():
+	status = 0
+	if session['dz'].logged_in:
+		session['dz'] = Deezer()
+		status = 0
+	else:
+		status = 1
+	emit('logged_out', status)
 
 @socketio.on('loginpage')
 def login_app():
+	emit('toast', {'msg': "Logging in...", 'icon': 'loading', 'dismiss': False, 'id': "login-toast"})
 	loginWindow = webview.create_window('Login into deezer.com', 'https://www.deezer.com/login', user_agent="Mozilla/5.0 (Linux; U; Android 4.0.3; ko-kr; LG-L160L Build/IML74K) AppleWebkit/534.30 (KHTML, like Gecko) Version/4.0 Mobile Safari/534.30")
 	while (loginWindow and loginWindow.get_current_url().startswith("https://www.deezer.com")):
 		time.sleep(1)
@@ -68,7 +89,11 @@ def login_app():
 		loginWindow.destroy()
 		arl = url[url.find("arl%3D")+6:]
 		arl = arl[:arl.find("&")]
-		result = app.login(session['dz'], arl)
+		# Login function
+		if not session['dz'].logged_in:
+			result = session['dz'].login_via_arl(arl)
+		else:
+			result = 2
 		emit('logged_in', {'status': result, 'arl': arl, 'user': app.getUser(session['dz'])})
 	else:
 		emit('logged_in', {'status': 0})
