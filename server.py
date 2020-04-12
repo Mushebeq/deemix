@@ -3,10 +3,11 @@ import os
 import webbrowser
 from functools import wraps
 
-from flask import Flask, url_for, render_template, jsonify, request, make_response
+from flask import Flask, render_template, request, session
 from flask_socketio import SocketIO, emit
 import logging
 import webview
+from deemix.api.deezer import Deezer
 import deemix.app.main as app
 import time
 
@@ -43,6 +44,10 @@ def closing():
 	func()
 	return 'server closed'
 
+@socketio.on('connect')
+def on_connect():
+	session['dz'] = Deezer()
+
 @socketio.on('init')
 def handle_init():
 	result = app.initialize()
@@ -50,8 +55,8 @@ def handle_init():
 
 @socketio.on('login')
 def login(arl):
-	result = app.login(arl)
-	emit('logged_in', {'status': result, 'arl': arl, 'user': app.getUser()})
+	result = app.login(session['dz'], arl)
+	emit('logged_in', {'status': result, 'arl': arl, 'user': app.getUser(session['dz'])})
 
 @socketio.on('loginpage')
 def login_app():
@@ -63,24 +68,26 @@ def login_app():
 		loginWindow.destroy()
 		arl = url[url.find("arl%3D")+6:]
 		arl = arl[:arl.find("&")]
-		result = app.login(arl)
-		emit('logged_in', {'status': result, 'arl': arl, 'user': app.getUser()})
+		result = app.login(session['dz'], arl)
+		emit('logged_in', {'status': result, 'arl': arl, 'user': app.getUser(session['dz'])})
 	else:
 		emit('logged_in', {'status': 0})
 
 @socketio.on('mainSearch')
 def mainSearch(data):
-	emit('mainSearch', app.mainSearch(data['term']))
+	emit('mainSearch', app.mainSearch(session['dz'], data['term']))
 
 @socketio.on('search')
 def search(data):
-	result = app.search(data['term'], data['type'], data['start'], data['nb'])
+	result = app.search(session['dz'], data['term'], data['type'], data['start'], data['nb'])
 	result['type'] = data['type']
 	emit('search', result)
 
 @socketio.on('addToQueue')
 def addToQueue(data):
-	app.addToQueue_link(data['url'], socket=socketio)
+	result = app.addToQueue_link(session['dz'], data['url'], socket=socketio)
+	if result == "Not logged in":
+		emit('toast', {'msg': "You need to log in to download tracks!", 'icon': 'report'})
 
 @socketio.on('removeFromQueue')
 def removeFromQueue(uuid):
