@@ -33,6 +33,8 @@ serverLog = logging.getLogger('werkzeug')
 serverLog.disabled = True
 server.logger.disabled = True
 
+app.initialize()
+
 @server.route('/')
 def landing():
 	return render_template('index.html', token=webview.token)
@@ -47,11 +49,9 @@ def closing():
 @socketio.on('connect')
 def on_connect():
 	session['dz'] = Deezer()
-
-@socketio.on('init')
-def handle_init():
-	result = app.initialize()
-	emit('initialization', result)
+	emit('init_settings', app.getSettings_link())
+	queue, queueList = app.getQueue_link()
+	emit('init_downloadQueue', {'queue': queue, 'queueList': queueList})
 
 @socketio.on('login')
 def login(arl, force=False):
