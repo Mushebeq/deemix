@@ -133,8 +133,8 @@ def choose_path():
 	return jsonify(response)
 
 def run_server(port):
-	print("Starting server at http://127.0.0.1:"+str(port))
-	socketio.run(server, host='127.0.0.1', port=port)
+	print("Starting server at http://0.0.0.0:"+str(port))
+	socketio.run(server, host='0.0.0.0', port=port)
 
 if __name__ == '__main__':
 	run_server(33333)
