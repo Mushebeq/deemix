@@ -132,26 +132,6 @@ def choose_path():
 
 	return jsonify(response)
 
-@server.route('/fullscreen', methods=['POST'])
-def fullscreen():
-	webview.windows[0].toggle_fullscreen()
-	return jsonify({})
-
-@server.route('/open-url', methods=['POST'])
-def open_url():
-	url = request.json['url']
-	webbrowser.open_new_tab(url)
-	return jsonify({})
-
-@server.route('/do/stuff', methods=['POST'])
-def do_stuff():
-	result = app.do_stuff()
-	if result:
-		response = {'status': 'ok', 'result': result}
-	else:
-		response = {'status': 'error'}
-	return jsonify(response)
-
 def run_server(port):
 	print("Starting server at http://127.0.0.1:"+str(port))
 	socketio.run(server, host='127.0.0.1', port=port)
