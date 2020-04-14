@@ -50,8 +50,8 @@ def closing():
 def on_connect():
 	session['dz'] = Deezer()
 	emit('init_settings', app.getSettings_link())
-	queue, queueList = app.getQueue_link()
-	emit('init_downloadQueue', {'queue': queue, 'queueList': queueList})
+	queue, queueList, currentItem = app.getQueue_link()
+	emit('init_downloadQueue', {'queue': queue, 'queueList': queueList, 'currentItem': currentItem})
 
 @socketio.on('login')
 def login(arl, force=False):
