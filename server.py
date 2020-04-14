@@ -10,6 +10,7 @@ import webview
 from deemix.api.deezer import Deezer
 import app
 import time
+import sys
 
 class CustomFlask(Flask):
 	jinja_options = Flask.jinja_options.copy()
@@ -146,8 +147,12 @@ def choose_path():
 	return jsonify(response)
 
 def run_server(port):
-	print("Starting server at http://0.0.0.0:"+str(port))
+	print("Starting server at http://127.0.0.1:"+str(port))
 	socketio.run(server, host='0.0.0.0', port=port)
 
 if __name__ == '__main__':
-	run_server(33333)
+	if len(sys.argv) >= 2:
+		port = int(sys.argv[1])
+	else:
+		port = 33333
+	run_server(port)
