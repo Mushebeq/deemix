@@ -46,4 +46,6 @@ def getQueue_link():
 	return getQueue()
 
 def saveSettings_link(newSettings):
+	global settings
+	settings = newSettings
 	return saveSettings(newSettings)

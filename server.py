@@ -126,6 +126,11 @@ def removeFinishedDownloads():
 def cancelAllDownloads():
 	app.cancelAllDownloads_link(socket=socketio)
 
+@socketio.on('saveSettings')
+def saveSettings(settings):
+	app.saveSettings_link(settings)
+	socketio.emit('updateSettings', settings)
+
 # Example code leftover, could be usefull later on
 @server.route('/choose/path', methods=['POST'])
 def choose_path():
