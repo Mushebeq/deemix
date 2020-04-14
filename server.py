@@ -8,7 +8,7 @@ from flask_socketio import SocketIO, emit
 import logging
 import webview
 from deemix.api.deezer import Deezer
-import deemix.app.main as app
+import app
 import time
 
 class CustomFlask(Flask):
