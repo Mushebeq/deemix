@@ -50,8 +50,8 @@ def closing():
 def on_connect():
 	session['dz'] = Deezer()
 	emit('init_settings', app.getSettings_link())
-	queue, queueList, currentItem = app.getQueue_link()
-	emit('init_downloadQueue', {'queue': queue, 'queueList': queueList, 'currentItem': currentItem})
+	queue, queueComplete, queueList, currentItem = app.getQueue_link()
+	emit('init_downloadQueue', {'queue': queue, 'queueComplete': queueComplete, 'queueList': queueList, 'currentItem': currentItem})
 
 @socketio.on('login')
 def login(arl, force=False):
@@ -117,6 +117,14 @@ def addToQueue(data):
 @socketio.on('removeFromQueue')
 def removeFromQueue(uuid):
 	app.removeFromQueue_link(uuid, socket=socketio)
+
+@socketio.on('removeFinishedDownloads')
+def removeFinishedDownloads():
+	app.removeFinishedDownloads_link(socket=socketio)
+
+@socketio.on('cancelAllDownloads')
+def cancelAllDownloads():
+	app.cancelAllDownloads_link(socket=socketio)
 
 # Example code leftover, could be usefull later on
 @server.route('/choose/path', methods=['POST'])

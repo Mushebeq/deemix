@@ -1,5 +1,5 @@
 import deemix.utils.localpaths as localpaths
-from deemix.app.queuemanager import addToQueue, removeFromQueue, getQueue, cancelAllDownloads
+from deemix.app.queuemanager import addToQueue, removeFromQueue, getQueue, cancelAllDownloads, removeFinishedDownloads
 from deemix.app.settings import initSettings, getSettings, saveSettings
 from os import system as execute
 
@@ -29,6 +29,12 @@ def addToQueue_link(dz, url, bitrate=None, socket=None):
 
 def removeFromQueue_link(uuid, socket=None):
 	removeFromQueue(uuid, socket)
+
+def cancelAllDownloads_link(socket=None):
+	cancelAllDownloads(socket)
+
+def removeFinishedDownloads_link(socket=None):
+	removeFinishedDownloads(socket)
 
 def getSettings_link():
 	return getSettings()
