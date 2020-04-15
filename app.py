@@ -12,11 +12,11 @@ def initialize():
 	global settings
 	settings = initSettings()
 
-def shutdown(socket=None):
-	print(getQueue())
-	cancelAllDownloads(socket)
-	if socket:
-		socket.emit("toast", {'msg': "Server is closed."})
+def shutdown(interface=None):
+	getQueue()
+	cancelAllDownloads(interface)
+	if interface:
+		interface.send("toast", {'msg': "Server is closed."})
 
 def mainSearch(dz, term):
 	return dz.search_main_gw(term)
@@ -24,17 +24,17 @@ def mainSearch(dz, term):
 def search(dz, term, type, start, nb):
 	return dz.search_gw(term, type, start, nb)
 
-def addToQueue_link(dz, url, bitrate=None, socket=None):
-	return addToQueue(dz, url, settings, bitrate, socket)
+def addToQueue_link(dz, url, bitrate=None, interface=None):
+	return addToQueue(dz, url, settings, bitrate, interface)
 
-def removeFromQueue_link(uuid, socket=None):
-	removeFromQueue(uuid, socket)
+def removeFromQueue_link(uuid, interface=None):
+	removeFromQueue(uuid, interface)
 
-def cancelAllDownloads_link(socket=None):
-	cancelAllDownloads(socket)
+def cancelAllDownloads_link(interface=None):
+	cancelAllDownloads(interface)
 
-def removeFinishedDownloads_link(socket=None):
-	removeFinishedDownloads(socket)
+def removeFinishedDownloads_link(interface=None):
+	removeFinishedDownloads(interface)
 
 def getSettings_link():
 	return getSettings()
