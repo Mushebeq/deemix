@@ -6,7 +6,6 @@ from functools import wraps
 from flask import Flask, render_template, request, session
 from flask_socketio import SocketIO, emit
 import logging
-import webview
 from deemix.api.deezer import Deezer
 import app
 import time
@@ -38,7 +37,7 @@ app.initialize()
 
 @server.route('/')
 def landing():
-	return render_template('index.html', token=webview.token)
+	return render_template('index.html')
 
 @server.route('/shutdown')
 def closing():
