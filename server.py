@@ -7,6 +7,7 @@ from flask import Flask, render_template, request, session
 from flask_socketio import SocketIO, emit
 import logging
 from deemix.api.deezer import Deezer
+from deemix.app.MessageInterface import MessageInterface
 import app
 import time
 import sys
@@ -22,12 +23,19 @@ class CustomFlask(Flask):
 	comment_end_string='#$',
 ))
 
+
 gui_dir = os.path.join(os.path.dirname(__file__), 'public')  # development path
 if not os.path.exists(gui_dir):  # frozen executable path
 	gui_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'public')
 server = CustomFlask(__name__, static_folder=gui_dir, template_folder=gui_dir)
 server.config['SEND_FILE_MAX_AGE_DEFAULT'] = 1  # disable caching
 socketio = SocketIO(server)
+
+class SocketInterface(MessageInterface):
+	def send(self, message, value):
+		socketio.emit(message, value)
+
+socket_interface = SocketInterface()
 
 serverLog = logging.getLogger('werkzeug')
 serverLog.disabled = True
@@ -41,7 +49,7 @@ def landing():
 
 @server.route('/shutdown')
 def closing():
-	app.shutdown(socket=socketio)
+	app.shutdown(interface=socket_interface)
 	func = request.environ.get('werkzeug.server.shutdown')
 	func()
 	return 'server closed'
@@ -110,26 +118,26 @@ def search(data):
 
 @socketio.on('addToQueue')
 def addToQueue(data):
-	result = app.addToQueue_link(session['dz'], data['url'], socket=socketio)
+	result = app.addToQueue_link(session['dz'], data['url'], interface=socket_interface)
 	if result == "Not logged in":
 		emit('toast', {'msg': "You need to log in to download tracks!", 'icon': 'report'})
 
 @socketio.on('removeFromQueue')
 def removeFromQueue(uuid):
-	app.removeFromQueue_link(uuid, socket=socketio)
+	app.removeFromQueue_link(uuid, interface=socket_interface)
 
 @socketio.on('removeFinishedDownloads')
 def removeFinishedDownloads():
-	app.removeFinishedDownloads_link(socket=socketio)
+	app.removeFinishedDownloads_link(interface=socket_interface)
 
 @socketio.on('cancelAllDownloads')
 def cancelAllDownloads():
-	app.cancelAllDownloads_link(socket=socketio)
+	app.cancelAllDownloads_link(interface=socket_interface)
 
 @socketio.on('saveSettings')
 def saveSettings(settings):
 	app.saveSettings_link(settings)
-	socketio.emit('updateSettings', settings)
+	socket_interface.send('updateSettings', settings)
 
 # Example code leftover, could be usefull later on
 @server.route('/choose/path', methods=['POST'])
