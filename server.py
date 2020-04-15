@@ -1,7 +1,5 @@
 import json
 import os
-import webbrowser
-from functools import wraps
 
 from flask import Flask, render_template, request, session
 from flask_socketio import SocketIO, emit
@@ -86,26 +84,6 @@ def logout():
 		status = 1
 	emit('logged_out', status)
 
-@socketio.on('loginpage')
-def login_app():
-	emit('toast', {'msg': "Logging in...", 'icon': 'loading', 'dismiss': False, 'id': "login-toast"})
-	loginWindow = webview.create_window('Login into deezer.com', 'https://www.deezer.com/login', user_agent="Mozilla/5.0 (Linux; U; Android 4.0.3; ko-kr; LG-L160L Build/IML74K) AppleWebkit/534.30 (KHTML, like Gecko) Version/4.0 Mobile Safari/534.30")
-	while (loginWindow and loginWindow.get_current_url().startswith("https://www.deezer.com")):
-		time.sleep(1)
-	if loginWindow:
-		url = loginWindow.get_current_url()
-		loginWindow.destroy()
-		arl = url[url.find("arl%3D")+6:]
-		arl = arl[:arl.find("&")]
-		# Login function
-		if not session['dz'].logged_in:
-			result = session['dz'].login_via_arl(arl)
-		else:
-			result = 2
-		emit('logged_in', {'status': result, 'arl': arl, 'user': app.getUser(session['dz'])})
-	else:
-		emit('logged_in', {'status': 0})
-
 @socketio.on('mainSearch')
 def mainSearch(data):
 	emit('mainSearch', app.mainSearch(session['dz'], data['term']))
@@ -138,20 +116,6 @@ def cancelAllDownloads():
 def saveSettings(settings):
 	app.saveSettings_link(settings)
 	socket_interface.send('updateSettings', settings)
-
-# Example code leftover, could be usefull later on
-@server.route('/choose/path', methods=['POST'])
-def choose_path():
-	dirs = webview.windows[0].create_file_dialog(webview.FOLDER_DIALOG)
-	if dirs and len(dirs) > 0:
-		directory = dirs[0]
-		if isinstance(directory, bytes):
-			directory = directory.decode('utf-8')
-		response = {'status': 'ok', 'directory': directory}
-	else:
-		response = {'status': 'cancel'}
-
-	return jsonify(response)
 
 def run_server(port):
 	print("Starting server at http://127.0.0.1:"+str(port))

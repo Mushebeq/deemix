@@ -13,7 +13,7 @@ def initialize():
 	settings = initSettings()
 
 def shutdown(interface=None):
-	print(getQueue())
+	getQueue()
 	cancelAllDownloads(interface)
 	if interface:
 		interface.send("toast", {'msg': "Server is closed."})
