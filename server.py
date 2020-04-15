@@ -122,13 +122,8 @@ def run_server(port):
 	socketio.run(server, host='0.0.0.0', port=port)
 
 if __name__ == '__main__':
-<<<<<<< HEAD
-	# run_server(33333)
-	run_server(9999)
-=======
 	if len(sys.argv) >= 2:
 		port = int(sys.argv[1])
 	else:
 		port = 33333
 	run_server(port)
->>>>>>> 0a733a0185133c2d14542d753d1577dc39bd04b0
