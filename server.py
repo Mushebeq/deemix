@@ -55,7 +55,9 @@ def closing():
 @socketio.on('connect')
 def on_connect():
 	session['dz'] = Deezer()
-	emit('init_settings', app.getSettings_link())
+	settings = app.getSettings_link()
+	spotifyCredentials = app.getSpotifyCredentials()
+	emit('init_settings', (settings, spotifyCredentials))
 	queue, queueComplete, queueList, currentItem = app.getQueue_link()
 	emit('init_downloadQueue', {'queue': queue, 'queueComplete': queueComplete, 'queueList': queueList, 'currentItem': currentItem})
 
@@ -113,9 +115,10 @@ def cancelAllDownloads():
 	app.cancelAllDownloads_link(interface=socket_interface)
 
 @socketio.on('saveSettings')
-def saveSettings(settings):
+def saveSettings(settings, spotifyCredentials):
 	app.saveSettings_link(settings)
-	socket_interface.send('updateSettings', settings)
+	app.setSpotifyCredentials(spotifyCredentials)
+	socketio.emit('updateSettings', (settings, spotifyCredentials))
 
 def run_server(port):
 	print("Starting server at http://127.0.0.1:"+str(port))
