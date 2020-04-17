@@ -120,6 +120,24 @@ def saveSettings(settings, spotifyCredentials):
 	app.setSpotifyCredentials(spotifyCredentials)
 	socketio.emit('updateSettings', (settings, spotifyCredentials))
 
+@socketio.on('getTracklist')
+def getTracklist(data):
+	if data['type'] == 'artist':
+		artistAPI = session['dz'].get_artist(data['id'])
+		artistAlbumsAPI = session['dz'].get_artist_albums(data['id'])['data']
+		tracksData = {}
+		for release in artistAlbumsAPI:
+			if not release['record_type'] in tracksData:
+				tracksData[release['record_type']] = []
+			tracksData[release['record_type']].append(release)
+		artistAPI['data'] = tracksData
+		emit('show_artist', artistAPI)
+	else:
+		releaseAPI = session['dz']['get_'+data['type']](data['id'])
+		releaseTracksAPI = session['dz']['get_'+data['type']](data['id'])
+		releaseAPI['data'] = releaseTracksAPI['data']
+		emit('show_'+data['type'], releaseAPI)
+
 def run_server(port):
 	print("Starting server at http://127.0.0.1:"+str(port))
 	socketio.run(server, host='0.0.0.0', port=port)
