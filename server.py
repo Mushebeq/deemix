@@ -30,8 +30,11 @@ server.config['SEND_FILE_MAX_AGE_DEFAULT'] = 1  # disable caching
 socketio = SocketIO(server)
 
 class SocketInterface(MessageInterface):
-	def send(self, message, value):
-		socketio.emit(message, value)
+	def send(self, message, value=None):
+		if value:
+			socketio.emit(message, value)
+		else:
+			socketio.emit(message)
 
 socket_interface = SocketInterface()
 
