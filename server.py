@@ -128,11 +128,12 @@ def getTracklist(data):
 	if data['type'] == 'artist':
 		artistAPI = session['dz'].get_artist(data['id'])
 		artistAlbumsAPI = session['dz'].get_artist_albums(data['id'])['data']
-		tracksData = {}
+		tracksData = { 'all': []}
 		for release in artistAlbumsAPI:
 			if not release['record_type'] in tracksData:
 				tracksData[release['record_type']] = []
 			tracksData[release['record_type']].append(release)
+			tracksData['all'].append(release)
 		artistAPI['data'] = tracksData
 		emit('show_artist', artistAPI)
 	else:
