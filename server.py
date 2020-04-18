@@ -134,12 +134,12 @@ def getTracklist(data):
 				tracksData[release['record_type']] = []
 			tracksData[release['record_type']].append(release)
 			tracksData['all'].append(release)
-		artistAPI['data'] = tracksData
+		artistAPI['releases'] = tracksData
 		emit('show_artist', artistAPI)
 	else:
 		releaseAPI = getattr(session['dz'], 'get_'+data['type'])(data['id'])
-		releaseTracksAPI = getattr(session['dz'], 'get_'+data['type'])(data['id'])
-		releaseAPI['data'] = releaseTracksAPI
+		releaseTracksAPI = getattr(session['dz'], 'get_'+data['type']+'_tracks')(data['id'])['data']
+		releaseAPI['tracks'] = releaseTracksAPI
 		emit('show_'+data['type'], releaseAPI)
 
 def run_server(port):
