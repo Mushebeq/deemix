@@ -27,7 +27,7 @@ def mainSearch(dz, term):
 	return dz.search_main_gw(term)
 
 def search(dz, term, type, start, nb):
-	return dz.search_gw(term, type, start, nb)
+	return dz.search(term, type, nb, start)
 
 # Queue functions
 def addToQueue_link(dz, url, bitrate=None, interface=None):
