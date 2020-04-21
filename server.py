@@ -141,7 +141,7 @@ def getTracklist(data):
 		releaseTracksAPI = getattr(session['dz'], 'get_'+data['type']+'_tracks')(data['id'])['data']
 		tracks = []
 		showdiscs = False
-		if data['type'] == 'album' and releaseTracksAPI[-1]['disk_number'] != 1:
+		if data['type'] == 'album' and len(releaseTracksAPI) and releaseTracksAPI[-1]['disk_number'] != 1:
 			current_disk = 0
 			showdiscs = True
 		for track in releaseTracksAPI:
