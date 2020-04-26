@@ -169,6 +169,10 @@ def getTracklist(data):
         releaseAPI['tracks'] = tracks
         emit('show_' + data['type'], releaseAPI)
 
+@socketio.on('analyzeLink')
+def analyzeLink(link):
+    (type, data) = app.analyzeLink(session['dz'], link)
+    emit('analyze_'+type, data)
 
 def run_server(port):
     print("Starting server at http://127.0.0.1:" + str(port))

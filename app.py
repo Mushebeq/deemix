@@ -1,4 +1,5 @@
 from deemix.app.queuemanager import addToQueue, removeFromQueue, getQueue, cancelAllDownloads, removeFinishedDownloads
+from deemix.utils.misc import getTypeFromLink, getIDFromLink
 from deemix.app.settings import initSettings, getSettings, saveSettings
 from deemix.app.spotify import SpotifyHelper
 
@@ -53,6 +54,14 @@ def removeFinishedDownloads_link(interface=None):
 def getQueue_link():
     return getQueue()
 
+def analyzeLink(dz, link):
+    type = getTypeFromLink(link)
+    relID = getIDFromLink(link, type)
+    if type in ["track", "album"]:
+        data = getattr(dz, 'get_' + type)(relID)
+    else:
+        data = {}
+    return (type, data)
 
 # Settings functions
 def getSettings_link():
