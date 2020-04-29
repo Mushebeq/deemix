@@ -69,6 +69,7 @@ def on_connect():
     queue, queueComplete, queueList, currentItem = app.getQueue_link()
     emit('init_downloadQueue',
          {'queue': queue, 'queueComplete': queueComplete, 'queueList': queueList, 'currentItem': currentItem})
+    emit('init_home', session['dz'].get_charts())
 
 
 @socketio.on('login')
