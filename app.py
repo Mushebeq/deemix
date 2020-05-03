@@ -1,6 +1,6 @@
 from deemix.app.queuemanager import addToQueue, removeFromQueue, getQueue, cancelAllDownloads, removeFinishedDownloads
 from deemix.utils.misc import getTypeFromLink, getIDFromLink
-from deemix.app.settings import initSettings, getSettings, saveSettings
+from deemix.app.settings import initSettings, getSettings, getDefaultSettings, saveSettings
 from deemix.app.spotify import SpotifyHelper
 
 settings = {}
@@ -15,7 +15,9 @@ def getUser(dz):
 def initialize():
     global settings
     global spotifyHelper
+    global defaultSettings
     settings = initSettings()
+    defaultSettings = getDefaultSettings()
     spotifyHelper = SpotifyHelper()
 
 
@@ -80,6 +82,10 @@ def analyzeLink(dz, link):
     return (type, data)
 
 # Settings functions
+def getDefaultSettings_link():
+    return defaultSettings
+
+
 def getSettings_link():
     return getSettings()
 

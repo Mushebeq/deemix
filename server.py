@@ -65,7 +65,8 @@ def on_connect():
     session['dz'] = Deezer()
     settings = app.getSettings_link()
     spotifyCredentials = app.getSpotifyCredentials()
-    emit('init_settings', (settings, spotifyCredentials))
+    defaultSettings = app.getDefaultSettings_link()
+    emit('init_settings', (settings, spotifyCredentials, defaultSettings))
     queue, queueComplete, queueList, currentItem = app.getQueue_link()
     emit('init_downloadQueue',
          {'queue': queue, 'queueComplete': queueComplete, 'queueList': queueList, 'currentItem': currentItem})
