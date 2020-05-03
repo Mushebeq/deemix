@@ -70,6 +70,7 @@ def on_connect():
     emit('init_downloadQueue',
          {'queue': queue, 'queueComplete': queueComplete, 'queueList': queueList, 'currentItem': currentItem})
     emit('init_home', session['dz'].get_charts())
+    emit('init_charts', app.get_charts(session['dz']))
 
 
 @socketio.on('login')
@@ -174,6 +175,10 @@ def getTracklist(data):
 def analyzeLink(link):
     (type, data) = app.analyzeLink(session['dz'], link)
     emit('analyze_'+type, data)
+
+@socketio.on('getChartTracks')
+def getChartTracks(id):
+    emit('setChartTracks', session['dz'].get_playlist_tracks(id)['data'])
 
 def run_server(port):
     print("Starting server at http://127.0.0.1:" + str(port))

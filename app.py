@@ -5,6 +5,7 @@ from deemix.app.spotify import SpotifyHelper
 
 settings = {}
 spotifyHelper = None
+chartsList = []
 
 
 def getUser(dz):
@@ -24,6 +25,21 @@ def shutdown(interface=None):
     if interface:
         interface.send("toast", {'msg': "Server is closed."})
 
+def get_charts(dz):
+    global chartsList
+    if len(chartsList) == 0:
+        temp = dz.get_charts_countries()
+        countries = []
+        for i in range(len(temp)):
+            countries.append({
+                'title': temp[i]['title'].replace("Top ", ""),
+                'id': temp[i]['id'],
+                'picture_small': temp[i]['picture_small'],
+                'picture_medium': temp[i]['picture_medium'],
+                'picture_big': temp[i]['picture_big']
+            })
+        chartsList = countries
+    return chartsList
 
 # Search functions
 def mainSearch(dz, term):
