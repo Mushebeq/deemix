@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 from deemix.app.queuemanager import addToQueue, removeFromQueue, getQueue, cancelAllDownloads, removeFinishedDownloads
 from deemix.utils.misc import getTypeFromLink, getIDFromLink
 from deemix.app.settings import initSettings, getSettings, getDefaultSettings, saveSettings
