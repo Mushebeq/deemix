@@ -98,6 +98,7 @@ def login(arl, force=False):
         else:
             result = 2
     emit('logged_in', {'status': result, 'arl': arl, 'user': app.getUser(session['dz'])})
+    emit('init_favorites', app.getUserFavorites(session['dz']))
 
 
 @socketio.on('logout')
