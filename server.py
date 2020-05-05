@@ -2,6 +2,7 @@
 import logging
 import os
 import sys
+from os import path
 
 from flask import Flask, render_template, request, session
 from flask_socketio import SocketIO, emit
@@ -9,6 +10,7 @@ from flask_socketio import SocketIO, emit
 import app
 from deemix.api.deezer import Deezer
 from deemix.app.MessageInterface import MessageInterface
+from deemix.utils import localpaths
 
 
 class CustomFlask(Flask):
@@ -29,7 +31,6 @@ if not os.path.exists(gui_dir):  # frozen executable path
 server = CustomFlask(__name__, static_folder=gui_dir, template_folder=gui_dir)
 server.config['SEND_FILE_MAX_AGE_DEFAULT'] = 1  # disable caching
 socketio = SocketIO(server)
-
 
 class SocketInterface(MessageInterface):
     def send(self, message, value=None):
@@ -60,6 +61,7 @@ def closing():
     func()
     return 'server closed'
 
+serverwide_arl = "--serverwide-arl" in sys.argv
 
 @socketio.on('connect')
 def on_connect():
@@ -68,6 +70,13 @@ def on_connect():
     spotifyCredentials = app.getSpotifyCredentials()
     defaultSettings = app.getDefaultSettings_link()
     emit('init_settings', (settings, spotifyCredentials, defaultSettings))
+
+    arl_file_path = path.join(localpaths.getConfigFolder(), '.arl')
+    if serverwide_arl and path.isfile(arl_file_path):
+        with open(arl_file_path, 'r') as file:
+            arl = file.read()
+            emit('init_serverwideARL', arl)
+
     queue, queueComplete, queueList, currentItem = app.getQueue_link()
     emit('init_downloadQueue',
          {'queue': queue, 'queueComplete': queueComplete, 'queueList': queueList, 'currentItem': currentItem})
