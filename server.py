@@ -227,8 +227,10 @@ def run_server(port):
 
 
 if __name__ == '__main__':
+    port = 33333
     if len(sys.argv) >= 2:
-        port = int(sys.argv[1])
-    else:
-        port = 33333
+        try:
+            port = int(sys.argv[1])
+        except ValueError:
+            pass
     run_server(port)
