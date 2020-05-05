@@ -59,6 +59,45 @@ def getUserFavorites(dz):
         result['tracks'] = dz.get_user_tracks_gw(user_id)
     return result
 
+def updateUserSpotifyPlaylists(user):
+    if user == "" or not spotifyHelper.spotifyEnabled:
+        return []
+    return spotifyHelper.get_user_playlists(user)
+
+
+def updateUserPlaylists(dz):
+    user_id = dz.user['id']
+    try:
+        return dz.get_user_playlists(user_id)['data']
+    except:
+        return dz.get_user_playlists_gw(user_id)
+
+def updateUserAlbums(dz):
+    user_id = dz.user['id']
+    try:
+        return dz.get_user_albums(user_id)['data']
+    except:
+        return dz.get_user_albums_gw(user_id)
+
+def updateUserArtists(dz):
+    user_id = dz.user['id']
+    try:
+        return dz.get_user_artists(user_id)['data']
+    except:
+        return dz.get_user_artists_gw(user_id)
+
+def updateUserTracks(dz):
+    user_id = dz.user['id']
+    try:
+        return dz.get_user_tracks(user_id)['data']
+    except:
+        return dz.get_user_tracks_gw(user_id)
+
+def getSpotifyPlaylistTracklist(id):
+    if id == "" or not spotifyHelper.spotifyEnabled:
+        return spotifyHelper.emptyPlaylist
+    return spotifyHelper.get_playlist_tracklist(id)
+
 # Search functions
 def mainSearch(dz, term):
     return dz.search_main_gw(term)

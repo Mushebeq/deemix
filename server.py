@@ -147,10 +147,12 @@ def cancelAllDownloads():
 
 
 @socketio.on('saveSettings')
-def saveSettings(settings, spotifyCredentials):
+def saveSettings(settings, spotifyCredentials, spotifyUser):
     app.saveSettings_link(settings)
     app.setSpotifyCredentials(spotifyCredentials)
     socketio.emit('updateSettings', (settings, spotifyCredentials))
+    if spotifyUser != False:
+        emit('updated_userSpotifyPlaylists', app.updateUserSpotifyPlaylists(spotifyUser))
 
 
 @socketio.on('getTracklist')
@@ -166,6 +168,12 @@ def getTracklist(data):
             tracksData['all'].append(release)
         artistAPI['releases'] = tracksData
         emit('show_artist', artistAPI)
+    elif data['type'] == 'spotifyplaylist':
+        playlistAPI = app.getSpotifyPlaylistTracklist(data['id'])
+        for i in range(len(playlistAPI['tracks'])):
+            playlistAPI['tracks'][i] = playlistAPI['tracks'][i]['track']
+            playlistAPI['tracks'][i]['selected'] = False
+        emit('show_spotifyplaylist', playlistAPI)
     else:
         releaseAPI = getattr(session['dz'], 'get_' + data['type'])(data['id'])
         releaseTracksAPI = getattr(session['dz'], 'get_' + data['type'] + '_tracks')(data['id'])['data']
@@ -191,6 +199,27 @@ def analyzeLink(link):
 @socketio.on('getChartTracks')
 def getChartTracks(id):
     emit('setChartTracks', session['dz'].get_playlist_tracks(id)['data'])
+
+@socketio.on('update_userSpotifyPlaylists')
+def update_userSpotifyPlaylists(spotifyUser):
+    if spotifyUser != False:
+        emit('updated_userSpotifyPlaylists', app.updateUserSpotifyPlaylists(spotifyUser))
+
+@socketio.on('update_userPlaylists')
+def update_userPlaylists():
+    emit('updated_userPlaylists', app.updateUserPlaylists(session['dz']))
+
+@socketio.on('update_userAlbums')
+def update_userAlbums():
+    emit('updated_userAlbums', app.updateUserAlbums(session['dz']))
+
+@socketio.on('update_userArtists')
+def update_userArtists():
+    emit('updated_userArtists', app.updateUserArtists(session['dz']))
+
+@socketio.on('update_userTracks')
+def update_userTracks():
+    emit('updated_userTracks', app.updateUserTracks(session['dz']))
 
 def run_server(port):
     print("Starting server at http://127.0.0.1:" + str(port))
