@@ -62,6 +62,8 @@ def closing():
     return 'server closed'
 
 serverwide_arl = "--serverwide-arl" in sys.argv
+if serverwide_arl:
+    print("Server-wide ARL enabled.")
 
 @socketio.on('connect')
 def on_connect():
@@ -73,7 +75,6 @@ def on_connect():
 
     arl_file_path = path.join(localpaths.getConfigFolder(), '.arl')
     if serverwide_arl and path.isfile(arl_file_path):
-        print("Server-wide ARL enabled.")
         with open(arl_file_path, 'r') as file:
             arl = file.read()
             emit('init_serverwideARL', arl)
