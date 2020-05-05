@@ -62,6 +62,8 @@ def closing():
     return 'server closed'
 
 serverwide_arl = "--serverwide-arl" in sys.argv
+if serverwide_arl:
+    print("Server-wide ARL enabled.")
 
 @socketio.on('connect')
 def on_connect():
