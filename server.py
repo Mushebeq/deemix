@@ -12,6 +12,11 @@ from deemix.api.deezer import Deezer
 from deemix.app.MessageInterface import MessageInterface
 from deemix.utils import localpaths
 
+# Workaround for MIME type error in certain Windows installs
+# https://github.com/pallets/flask/issues/1045#issuecomment-42202749
+import mimetypes
+mimetypes.add_type('text/css', '.css')
+mimetypes.add_type('text/javascript', '.js')
 
 class CustomFlask(Flask):
     jinja_options = Flask.jinja_options.copy()
