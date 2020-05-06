@@ -77,7 +77,7 @@ def on_connect():
     if serverwide_arl and path.isfile(arl_file_path):
         with open(arl_file_path, 'r') as file:
             arl = file.read()
-            emit('init_serverwideARL', arl)
+            login(arl)
 
     queue, queueComplete, queueList, currentItem = app.getQueue_link()
     emit('init_downloadQueue',
