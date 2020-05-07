@@ -87,7 +87,7 @@ def on_connect():
     arl_file_path = path.join(localpaths.getConfigFolder(), '.arl')
     if serverwide_arl and path.isfile(arl_file_path):
         with open(arl_file_path, 'r') as file:
-            arl = file.read()
+            arl = file.readline()
             login(arl)
 
     queue, queueComplete, queueList, currentItem = app.getQueue_link()
