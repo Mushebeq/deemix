@@ -1,6 +1,5 @@
 #!/usr/env/bin python3
 import logging
-import os
 import sys
 from os import path
 
@@ -29,10 +28,17 @@ class CustomFlask(Flask):
         comment_end_string='#$',
     ))
 
+def resource_path(relative_path):
+    """ Get absolute path to resource, works for dev and for PyInstaller """
+    try:
+        # PyInstaller creates a temp folder and stores path in _MEIPASS
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = path.dirname(path.abspath(__file__))
 
-gui_dir = os.path.join(os.path.dirname(__file__), 'public')  # development path
-if not os.path.exists(gui_dir):  # frozen executable path
-    gui_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'public')
+    return path.join(base_path, relative_path)
+
+gui_dir = resource_path("public")
 server = CustomFlask(__name__, static_folder=gui_dir, template_folder=gui_dir)
 server.config['SEND_FILE_MAX_AGE_DEFAULT'] = 1  # disable caching
 socketio = SocketIO(server)
