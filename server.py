@@ -55,7 +55,9 @@ socket_interface = SocketInterface()
 
 serverLog = logging.getLogger('werkzeug')
 serverLog.disabled = True
-server.logger.disabled = True
+logging.getLogger('socketio').setLevel(logging.ERROR)
+logging.getLogger('engineio').setLevel(logging.ERROR)
+#server.logger.disabled = True
 
 app.initialize()
 
