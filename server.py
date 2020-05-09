@@ -112,7 +112,7 @@ def login(arl, force=False):
                 result = 3
         else:
             result = 2
-    emit('logged_in', {'status': result, 'arl': arl, 'user': app.getUser(session['dz'])})
+    emit('logged_in', {'status': result, 'arl': arl, 'user': session['dz'].user})
     emit('init_favorites', app.getUserFavorites(session['dz']))
 
 

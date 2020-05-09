@@ -9,10 +9,6 @@ spotifyHelper = None
 chartsList = []
 
 
-def getUser(dz):
-    return dz.user
-
-
 def initialize():
     global settings
     global spotifyHelper
