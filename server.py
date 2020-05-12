@@ -1,4 +1,5 @@
 #!/usr/env/bin python3
+import json
 import logging
 import sys
 from os import path
@@ -10,6 +11,8 @@ import app
 from deemix.api.deezer import Deezer
 from deemix.app.MessageInterface import MessageInterface
 from deemix.utils import localpaths
+
+import spotifyadvanced
 
 # Workaround for MIME type error in certain Windows installs
 # https://github.com/pallets/flask/issues/1045#issuecomment-42202749
@@ -97,6 +100,7 @@ def on_connect():
          {'queue': queue, 'queueComplete': queueComplete, 'queueList': queueList, 'currentItem': currentItem})
     emit('init_home', session['dz'].get_charts())
     emit('init_charts', app.get_charts(session['dz']))
+    emit('init_spotify', app.initSpotifyAdvanced())
 
 
 @socketio.on('login')
@@ -114,7 +118,6 @@ def login(arl, force=False):
             result = 2
     emit('logged_in', {'status': result, 'arl': arl, 'user': session['dz'].user})
     emit('init_favorites', app.getUserFavorites(session['dz']))
-
 
 @socketio.on('logout')
 def logout():
@@ -210,6 +213,33 @@ def getTracklist(data):
 def analyzeLink(link):
     (type, data) = app.analyzeLink(session['dz'], link)
     emit('analyze_'+type, data)
+
+@socketio.on('getTracklistFromSpotifyPlaylists')
+def getTracklistFromSpotifyPlaylists(data):
+    playlistAPI = app.getTracklistFromSpotifyPlaylists(data['playlists'])
+    for i in range(len(playlistAPI['tracks'])):
+            playlistAPI['tracks'][i] = playlistAPI['tracks'][i]['track']
+            playlistAPI['tracks'][i]['selected'] = False
+    filename = "debug_getTracklistFromSpotifyPlaylists_playlistAPI_server"
+    with open(filename+".json", 'w') as outfile:
+        json.dump(playlistAPI, outfile, indent=4)
+    emit('getTracklistFromSpotifyPlaylists_done', playlistAPI)
+
+@socketio.on('mergeSpotifyPlaylists')
+def mergeSpotifyPlaylists(data):
+    result = app.mergeSpotifyPlaylists(data['playlists'])
+    # returns ERROR 1 or
+    # returns uri of new created playlist
+    filename = "debug_mergeSpotifyPlaylists_result"
+    with open(filename+".json", 'w') as outfile:
+        json.dump(result, outfile, indent=4)
+    
+    if result != "ERROR 1":
+        emit('mergeSpotifyPlaylists_done', result) # <--- sollte die neue playlists anzeigen in result steht die playlist URI
+        emit('init_spotify', app.initSpotify()) # analog zu updateUserSpotifyPlaylists
+        #emit('updated_userSpotifyPlaylists', app.updateUserSpotifyPlaylists(spotifyUser))
+    else: 
+        emit('mergeSpotifyPlaylists_error', result)
 
 @socketio.on('getChartTracks')
 def getChartTracks(id):

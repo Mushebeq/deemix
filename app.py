@@ -4,8 +4,11 @@ from deemix.utils.misc import getTypeFromLink, getIDFromLink
 from deemix.app.settings import initSettings, getSettings, getDefaultSettings, saveSettings
 from deemix.app.spotify import SpotifyHelper
 
+from spotifyadvanced import SpotifyAdvanced
+
 settings = {}
 spotifyHelper = None
+spotifyAdvanced = None
 chartsList = []
 
 
@@ -16,7 +19,22 @@ def initialize():
     settings = initSettings()
     defaultSettings = getDefaultSettings()
     spotifyHelper = SpotifyHelper()
+    global spotifyAdvanced
+    spotifyAdvanced = SpotifyAdvanced()
 
+def initSpotifyAdvanced():
+    user = spotifyAdvanced.getUsername()
+    if user == "" or not spotifyAdvanced.spotifyAdvancedEnabled:
+        return []
+    result = spotifyAdvanced.get_user_playlists(user)
+    #print(result)
+    return result
+
+def getTracklistFromSpotifyPlaylists(playlistIds):
+    return spotifyAdvanced.getTracklistFromSpotifyPlaylists(playlistIds)
+
+def mergeSpotifyPlaylists(playlistIds):
+    return spotifyAdvanced.mergeSpotifyPlaylists(playlistIds)
 
 def shutdown(interface=None):
     getQueue()
