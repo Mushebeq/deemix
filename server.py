@@ -236,7 +236,7 @@ def mergeSpotifyPlaylists(data):
     
     if result != "ERROR 1":
         emit('mergeSpotifyPlaylists_done', result) # <--- sollte die neue playlists anzeigen in result steht die playlist URI
-        emit('init_spotify', app.initSpotify()) # analog zu updateUserSpotifyPlaylists
+        emit('init_spotify', app.initSpotifyAdvanced()) # analog zu updateUserSpotifyPlaylists
         #emit('updated_userSpotifyPlaylists', app.updateUserSpotifyPlaylists(spotifyUser))
     else: 
         emit('mergeSpotifyPlaylists_error', result)
