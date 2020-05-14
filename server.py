@@ -85,6 +85,7 @@ def on_connect():
     spotifyCredentials = app.getSpotifyCredentials()
     defaultSettings = app.getDefaultSettings_link()
     emit('init_settings', (settings, spotifyCredentials, defaultSettings))
+    emit('init_autologin')
 
     arl_file_path = path.join(localpaths.getConfigFolder(), '.arl')
     if serverwide_arl and path.isfile(arl_file_path):
