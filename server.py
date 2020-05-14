@@ -130,14 +130,16 @@ def logout():
 
 @socketio.on('mainSearch')
 def mainSearch(data):
-    emit('mainSearch', app.mainSearch(session['dz'], data['term']))
+    if data['term'].strip() != "":
+        emit('mainSearch', app.mainSearch(session['dz'], data['term']))
 
 
 @socketio.on('search')
 def search(data):
-    result = app.search(session['dz'], data['term'], data['type'], data['start'], data['nb'])
-    result['type'] = data['type']
-    emit('search', result)
+    if data['term'].strip() != "":
+        result = app.search(session['dz'], data['term'], data['type'], data['start'], data['nb'])
+        result['type'] = data['type']
+        emit('search', result)
 
 
 @socketio.on('addToQueue')
