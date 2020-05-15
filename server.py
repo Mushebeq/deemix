@@ -70,8 +70,7 @@ def landing():
 @server.route('/shutdown')
 def closing():
     app.shutdown(interface=socket_interface)
-    func = request.environ.get('werkzeug.server.shutdown')
-    func()
+    socketio.stop()
     return 'server closed'
 
 serverwide_arl = "--serverwide-arl" in sys.argv
