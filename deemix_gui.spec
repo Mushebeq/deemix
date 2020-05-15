@@ -3,7 +3,7 @@
 block_cipher = None
 
 
-a = Analysis(['deemix_win.py'],
+a = Analysis(['deemix_gui.py'],
              binaries=[],
              datas=[('public', 'public'), ('deemix/app/default.json','deemix/app'), ('./icon.ico', '.')],
              hiddenimports=['engineio.async_drivers.threading', 'pkg_resources.py2_warn'],
@@ -33,4 +33,4 @@ coll = COLLECT(exe,
                strip=False,
                upx=True,
                upx_exclude=[],
-               name='deemix_win')
+               name='deemix_gui')
