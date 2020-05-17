@@ -1,8 +1,13 @@
 #!/usr/bin/env python3
-from deemix.app.queuemanager import addToQueue, removeFromQueue, getQueue, cancelAllDownloads, removeFinishedDownloads
+from deemix.app.queuemanager import addToQueue, removeFromQueue, getQueue, cancelAllDownloads, removeFinishedDownloads, restoreQueue, slimQueueItems, resetQueueItems
 from deemix.utils.misc import getTypeFromLink, getIDFromLink
 from deemix.app.settings import initSettings, getSettings, getDefaultSettings, saveSettings
 from deemix.app.spotify import SpotifyHelper
+from deemix.utils.localpaths import getConfigFolder
+
+import os.path as path
+import json
+from os import remove
 
 settings = {}
 spotifyHelper = None
@@ -19,10 +24,35 @@ def initialize():
 
 
 def shutdown(interface=None):
-    getQueue()
+    if settings['saveDownloadQueue']:
+        (queue, queueComplete, queueList, currentItem) = getQueue()
+        if len(queueList) > 0:
+            queue.insert(0, currentItem)
+            with open(path.join(getConfigFolder(), 'queue.json'), 'w') as f:
+                json.dump({
+                    'queue': queue,
+                    'queueComplete': queueComplete,
+                    'queueList': resetQueueItems(queueList, queue)
+                }, f)
     cancelAllDownloads(interface)
     if interface:
         interface.send("toast", {'msg': "Server is closed."})
+
+def loadDownloadQueue(dz, interface=None):
+    if path.isfile(path.join(getConfigFolder(), 'queue.json')):
+        if interface:
+            interface.send('toast', {'msg': "Restoring download queue", 'icon': 'loading', 'dismiss': False,
+                                     'id': 'restoring_queue'})
+        with open(path.join(getConfigFolder(), 'queue.json'), 'r') as f:
+            qd = json.load(f)
+        if interface:
+            interface.send('init_downloadQueue',
+                 {'queue': qd['queue'], 'queueComplete': qd['queueComplete'], 'queueList': slimQueueItems(qd['queueList'])})
+        if interface:
+            interface.send('toast', {'msg': "Download queue restored!", 'icon': 'done', 'dismiss': True,
+                                     'id': 'restoring_queue'})
+        remove(path.join(getConfigFolder(), 'queue.json'))
+        restoreQueue(qd['queue'], qd['queueComplete'], qd['queueList'], dz, interface)
 
 def get_charts(dz):
     global chartsList
@@ -120,8 +150,9 @@ def removeFinishedDownloads_link(interface=None):
     removeFinishedDownloads(interface)
 
 
-def getQueue_link():
-    return getQueue()
+def initDownloadQueue():
+    (queue, queueComplete, queueList, currentItem) = getQueue()
+    return (queue, queueComplete, slimQueueItems(queueList), currentItem)
 
 def analyzeLink(dz, link):
     type = getTypeFromLink(link)

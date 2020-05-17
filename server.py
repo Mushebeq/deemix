@@ -60,6 +60,7 @@ logging.getLogger('engineio').setLevel(logging.ERROR)
 #server.logger.disabled = True
 
 app.initialize()
+firstConnection = True
 
 
 @server.route('/')
@@ -92,7 +93,7 @@ def on_connect():
             arl = file.readline().rstrip("\n")
             login(arl)
 
-    queue, queueComplete, queueList, currentItem = app.getQueue_link()
+    queue, queueComplete, queueList, currentItem = app.initDownloadQueue()
     emit('init_downloadQueue',
          {'queue': queue, 'queueComplete': queueComplete, 'queueList': queueList, 'currentItem': currentItem})
     emit('init_home', session['dz'].get_charts())
@@ -101,6 +102,7 @@ def on_connect():
 
 @socketio.on('login')
 def login(arl, force=False):
+    global firstConnection
     emit('toast', {'msg': "Logging in...", 'icon': 'loading', 'dismiss': False, 'id': "login-toast"})
     if not session['dz'].logged_in:
         result = session['dz'].login_via_arl(arl)
@@ -114,6 +116,10 @@ def login(arl, force=False):
             result = 2
     emit('logged_in', {'status': result, 'arl': arl, 'user': session['dz'].user})
     emit('init_favorites', app.getUserFavorites(session['dz']))
+    if firstConnection and result in [1, 3]:
+        firstConnection = False
+        app.loadDownloadQueue(session['dz'], socket_interface)
+
 
 
 @socketio.on('logout')
