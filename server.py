@@ -3,7 +3,7 @@ import logging
 import sys
 from os import path
 
-from flask import Flask, render_template, request, session
+from flask import Flask, render_template, request, session, copy_current_request_context
 from flask_socketio import SocketIO, emit
 
 import app
@@ -16,6 +16,12 @@ from deemix.utils import localpaths
 import mimetypes
 mimetypes.add_type('text/css', '.css')
 mimetypes.add_type('text/javascript', '.js')
+
+try:
+    import webview
+    clientMode = True
+except:
+    clientMode = False
 
 class CustomFlask(Flask):
     jinja_options = Flask.jinja_options.copy()
@@ -60,6 +66,8 @@ logging.getLogger('engineio').setLevel(logging.ERROR)
 #server.logger.disabled = True
 
 app.initialize()
+
+loginWindow = False
 
 
 @server.route('/')
@@ -125,6 +133,57 @@ def logout():
     else:
         status = 1
     emit('logged_out', status)
+
+
+@socketio.on('applogin')
+def applogin():
+    global loginWindow
+    if clientMode and not loginWindow:
+        @copy_current_request_context
+        def check_URL():
+            global loginWindow
+            window = webview.windows[loginWindow]
+            try:
+                url = window.get_current_url()
+            except:
+                url = "https://www.deezer.com/us/login"
+            if url.startswith("intent:"):
+                loginWindow = False
+                window.loaded -= check_URL
+                window.destroy()
+                arl = url[url.find("arl%3D")+6:]
+                arl = arl[:arl.find("&")]
+                if not session['dz'].logged_in:
+                    result = session['dz'].login_via_arl(arl)
+                else:
+                    result = 2
+                emit('logged_in', {'status': result, 'arl': arl, 'user': session['dz'].user})
+                emit('init_favorites', app.getUserFavorites(session['dz']))
+        @copy_current_request_context
+        def on_close():
+            global loginWindow
+            if loginWindow:
+                emit('logged_in', {'status': 0, 'arl': '', 'user': session['dz'].user})
+                loginWindow = False
+        if not session['dz'].logged_in:
+            ANDROID_USERAGENT = "Mozilla/5.0 (Linux; Android 9; SM-G960F Build/PPR1.180610.011; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/74.0.3729.157 Mobile Safari/537.36"
+            if sys.platform.startswith('win32'):
+                from webview.platforms.cef import settings
+            elif sys.platform.startswith('darwin'):
+                from webview.platforms.cocoa import settings
+            elif sys.platform.startswith('linux'):
+                # TODO: Add a check if qt is used instead, and load the right object
+                from webview.platforms.gtk import settings
+            settings.update({
+                'user_agent': ANDROID_USERAGENT
+            })
+            emit('toast', {'msg': "Logging in...", 'icon': 'loading', 'dismiss': False, 'id': "login-toast"})
+            window = webview.create_window('Login into your deezer account', "https://www.deezer.com/us/login")
+            loginWindow = len(webview.windows)-1
+            window.loaded += check_URL
+            window.closed += on_close
+        else:
+            emit('logged_in', {'status': 2, 'user': session['dz'].user})
 
 
 @socketio.on('mainSearch')
