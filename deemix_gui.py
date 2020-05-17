@@ -9,6 +9,7 @@ from http.client import HTTPConnection
 from deemix.utils.localpaths import getConfigFolder
 
 server_lock = Lock()
+ANDROID_USERAGENT = "Mozilla/5.0 (Linux; Android 9; SM-G960F Build/PPR1.180610.011; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/74.0.3729.157 Mobile Safari/537.36"
 
 def url_ok(url, port):
     try:
@@ -38,7 +39,8 @@ if __name__ == '__main__':
         from webview.platforms.cef import settings
         settings.update({
             'persist_session_cookies': True,
-            'cache_path': getConfigFolder()
+            'cache_path': getConfigFolder(),
+            'user_agent': ANDROID_USERAGENT
         })
         webview.start(gui='cef', debug=True)
     else:
