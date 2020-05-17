@@ -3,6 +3,7 @@ import webview
 
 from threading import Thread, Lock
 import sys
+import os.path as path
 from time import sleep
 from server import run_server
 from http.client import HTTPConnection
@@ -20,6 +21,15 @@ def url_ok(url, port):
         print("Server not started")
         return False
 
+def save_position():
+    window = webview.windows[0]
+    x = window.x
+    y = window.y
+    w = window.width
+    h = window.height
+    with open(path.join(configFolder, '.UIposition'), 'w') as f:
+        f.write("|".join([str(x),str(y),str(w),str(h)]))
+
 if __name__ == '__main__':
     url = "127.0.0.1"
     if len(sys.argv) >= 2:
@@ -32,13 +42,34 @@ if __name__ == '__main__':
 
     while not url_ok(url, port):
         sleep(1)
+    configFolder = getConfigFolder()
 
-    window = webview.create_window('deemix', 'http://'+url+':'+str(port))
+    if path.isfile(path.join(configFolder, '.UIposition')):
+        try:
+            with open(path.join(configFolder, '.UIposition'), 'r') as f:
+                (x,y,w,h) = f.read().strip().split("|")
+            x = int(x)
+            y = int(y)
+            w = int(w)
+            h = int(h)
+        except:
+            x = None
+            y = None
+            w = 800
+            h = 600
+    else:
+        x = None
+        y = None
+        w = 800
+        h = 600
+    window = webview.create_window('deemix', 'http://'+url+':'+str(port),
+        confirm_close=True, x=x, y=y, width=w, height=h)
+    window.closing += save_position
     if sys.platform == "win32":
         from webview.platforms.cef import settings
         settings.update({
             'persist_session_cookies': True,
-            'cache_path': getConfigFolder()
+            'cache_path': configFolder
         })
         webview.start(gui='cef', debug=True)
     else:
