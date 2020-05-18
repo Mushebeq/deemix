@@ -27,7 +27,8 @@ def shutdown(interface=None):
     if settings['saveDownloadQueue']:
         (queue, queueComplete, queueList, currentItem) = getQueue()
         if len(queueList) > 0:
-            queue.insert(0, currentItem)
+            if currentItem != "":
+                queue.insert(0, currentItem)
             with open(path.join(getConfigFolder(), 'queue.json'), 'w') as f:
                 json.dump({
                     'queue': queue,
