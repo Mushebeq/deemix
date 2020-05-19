@@ -55,6 +55,10 @@ def loadDownloadQueue(dz, interface=None):
         remove(path.join(getConfigFolder(), 'queue.json'))
         restoreQueue(qd['queue'], qd['queueComplete'], qd['queueList'], dz, interface)
 
+def getDownloadFolder():
+    global settings
+    return settings['downloadLocation']
+
 def get_charts(dz):
     global chartsList
     if len(chartsList) == 0:

@@ -1,6 +1,7 @@
 #!/usr/env/bin python3
 import logging
 import sys
+import subprocess
 from os import path
 
 from flask import Flask, render_template, request, session
@@ -243,6 +244,16 @@ def update_userArtists():
 @socketio.on('update_userTracks')
 def update_userTracks():
     emit('updated_userTracks', app.updateUserTracks(session['dz']))
+
+@socketio.on('openDownloadsFolder')
+def openDownloadsFolder():
+    folder = app.getDownloadFolder()
+    if sys.platform == 'darwin':
+        subprocess.check_call(['open', folder])
+    elif sys.platform == 'linux':
+        subprocess.check_call(['xdg-open', folder])
+    elif sys.platform == 'win32':
+        subprocess.check_call(['explorer', folder])
 
 def run_server(port):
     print("Starting server at http://127.0.0.1:" + str(port))
