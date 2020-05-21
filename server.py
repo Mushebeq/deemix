@@ -18,6 +18,11 @@ import mimetypes
 mimetypes.add_type('text/css', '.css')
 mimetypes.add_type('text/javascript', '.js')
 
+# Makes engineio accept more packets from client, needed for long URL lists in addToQueue requests
+# https://github.com/miguelgrinberg/python-engineio/issues/142#issuecomment-545807047
+from engineio.payload import Payload
+Payload.max_decode_packets = 500
+
 class CustomFlask(Flask):
     jinja_options = Flask.jinja_options.copy()
     jinja_options.update(dict(
