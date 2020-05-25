@@ -44,7 +44,7 @@ def resource_path(relative_path):
 
     return path.join(base_path, relative_path)
 
-gui_dir = resource_path('public')
+gui_dir = resource_path(path.join('webui', 'public'))
 server = CustomFlask(__name__, static_folder=gui_dir, template_folder=gui_dir)
 server.config['SEND_FILE_MAX_AGE_DEFAULT'] = 1  # disable caching
 socketio = SocketIO(server, async_mode='threading')

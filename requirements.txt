@@ -1,0 +1,4 @@
+deemix
+flask
+flask-socketio
+pywebview
