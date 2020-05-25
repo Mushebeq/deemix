@@ -3,7 +3,10 @@ __pycache__
 
 .DS_Store
 node_modules
+
+# pyinstaller build dirs
 /dist
+/build
 
 # local env files
 /env/
