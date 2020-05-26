@@ -1,8 +1,11 @@
 # -*- mode: python ; coding: utf-8 -*-
 import deemix
+import sys
 from os.path import dirname
 
 block_cipher = None
+
+sys.modules['FixTk'] = None
 
 a = Analysis(['server.py'],
              binaries=[],
@@ -10,7 +13,7 @@ a = Analysis(['server.py'],
              hiddenimports=['engineio.async_drivers.threading', 'pkg_resources.py2_warn'],
              hookspath=[],
              runtime_hooks=[],
-             excludes=[],
+             excludes=['FixTk', 'tcl', 'tk', '_tkinter', 'tkinter', 'Tkinter'],
              win_no_prefer_redirects=False,
              win_private_assemblies=False,
              cipher=block_cipher,

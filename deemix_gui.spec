@@ -1,10 +1,11 @@
 # -*- mode: python ; coding: utf-8 -*-
 import deemix
+import sys
 from os.path import dirname
-from sys import platform
 
 block_cipher = None
 
+sys.modules['FixTk'] = None
 
 a = Analysis(['deemix_gui.py'],
              binaries=[],
@@ -12,7 +13,7 @@ a = Analysis(['deemix_gui.py'],
              hiddenimports=['engineio.async_drivers.threading', 'pkg_resources.py2_warn'],
              hookspath=[],
              runtime_hooks=[],
-             excludes=[],
+             excludes=['FixTk', 'tcl', 'tk', '_tkinter', 'tkinter', 'Tkinter'],
              win_no_prefer_redirects=False,
              win_private_assemblies=False,
              cipher=block_cipher,
@@ -28,7 +29,7 @@ exe = EXE(pyz,
           bootloader_ignore_signals=False,
           strip=False,
           upx=True,
-          console=True, icon=f"icon.{'icns' if platform.startswith('darwin') else 'ico'}" )
+          console=True, icon=f"icon.{'icns' if sys.platform.startswith('darwin') else 'ico'}" )
 coll = COLLECT(exe,
                a.binaries,
                a.zipfiles,
