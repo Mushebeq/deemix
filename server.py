@@ -10,7 +10,6 @@ from flask_socketio import SocketIO, emit
 import app
 from deemix.api.deezer import Deezer
 from deemix.app.MessageInterface import MessageInterface
-from deemix.utils import localpaths
 
 # Workaround for MIME type error in certain Windows installs
 # https://github.com/pallets/flask/issues/1045#issuecomment-42202749
@@ -65,9 +64,7 @@ logging.getLogger('socketio').setLevel(logging.ERROR)
 logging.getLogger('engineio').setLevel(logging.ERROR)
 #server.logger.disabled = True
 
-app.initialize()
 firstConnection = True
-
 
 @server.route('/')
 def landing():
@@ -93,7 +90,7 @@ def on_connect():
     emit('init_settings', (settings, spotifyCredentials, defaultSettings))
     emit('init_autologin')
 
-    arl_file_path = path.join(localpaths.getConfigFolder(), '.arl')
+    arl_file_path = path.join(app.configFolder, '.arl')
     if serverwide_arl and path.isfile(arl_file_path):
         with open(arl_file_path, 'r') as file:
             arl = file.readline().rstrip("\n")
@@ -260,7 +257,8 @@ def openDownloadsFolder():
     elif sys.platform == 'win32':
         subprocess.check_call(['explorer', folder])
 
-def run_server(port):
+def run_server(port, portable=None):
+    app.initialize(portable)
     print("Starting server at http://127.0.0.1:" + str(port))
     socketio.run(server, host='0.0.0.0', port=port)
 
@@ -272,4 +270,8 @@ if __name__ == '__main__':
             port = int(sys.argv[1])
         except ValueError:
             pass
-    run_server(port)
+    if '--portable' in sys.argv:
+        portable = path.join(path.dirname(path.realpath(__file__)), 'config')
+    else:
+        portable = None
+    run_server(port, portable)

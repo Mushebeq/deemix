@@ -12,24 +12,31 @@ from os import remove
 settings = {}
 spotifyHelper = None
 chartsList = []
+configFolder = ""
 
 
-def initialize():
+def initialize(portable):
     global settings
     global spotifyHelper
     global defaultSettings
-    settings = initSettings()
+    global configFolder
+    if portable:
+        configFolder = portable
+    else:
+        configFolder = getConfigFolder()
+    settings = initSettings(configFolder=configFolder)
     defaultSettings = getDefaultSettings()
-    spotifyHelper = SpotifyHelper()
+    spotifyHelper = SpotifyHelper(configFolder=configFolder)
 
 
 def shutdown(interface=None):
+    global configFolder
     if settings['saveDownloadQueue']:
         (queue, queueComplete, queueList, currentItem) = getQueue()
         if len(queueList) > 0:
             if currentItem != "":
                 queue.insert(0, currentItem)
-            with open(path.join(getConfigFolder(), 'queue.json'), 'w') as f:
+            with open(path.join(configFolder, 'queue.json'), 'w') as f:
                 json.dump({
                     'queue': queue,
                     'queueComplete': queueComplete,
@@ -40,11 +47,12 @@ def shutdown(interface=None):
         interface.send("toast", {'msg': "Server is closed."})
 
 def loadDownloadQueue(dz, interface=None):
-    if path.isfile(path.join(getConfigFolder(), 'queue.json')):
+    global configFolder
+    if path.isfile(path.join(configFolder, 'queue.json')):
         if interface:
             interface.send('toast', {'msg': "Restoring download queue", 'icon': 'loading', 'dismiss': False,
                                      'id': 'restoring_queue'})
-        with open(path.join(getConfigFolder(), 'queue.json'), 'r') as f:
+        with open(path.join(configFolder, 'queue.json'), 'r') as f:
             qd = json.load(f)
         if interface:
             interface.send('init_downloadQueue',
@@ -52,7 +60,7 @@ def loadDownloadQueue(dz, interface=None):
         if interface:
             interface.send('toast', {'msg': "Download queue restored!", 'icon': 'done', 'dismiss': True,
                                      'id': 'restoring_queue'})
-        remove(path.join(getConfigFolder(), 'queue.json'))
+        remove(path.join(configFolder, 'queue.json'))
         restoreQueue(qd['queue'], qd['queueComplete'], qd['queueList'], dz, interface)
 
 def getDownloadFolder():

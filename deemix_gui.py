@@ -32,17 +32,26 @@ def save_position():
 
 if __name__ == '__main__':
     url = "127.0.0.1"
+    port = 9666
     if len(sys.argv) >= 2:
-        port = int(sys.argv[1])
+        try:
+            port = int(sys.argv[1])
+        except ValueError:
+            pass
+    if '--portable' in sys.argv:
+        portable = path.join(path.dirname(path.realpath(__file__)), 'config')
     else:
-        port = 9666
-    t = Thread(target=run_server, args=(port, ))
+        portable = None
+    t = Thread(target=run_server, args=(port, portable))
     t.daemon = True
     t.start()
 
     while not url_ok(url, port):
         sleep(1)
-    configFolder = getConfigFolder()
+    if portable:
+        configFolder = portable
+    else:
+        configFolder = getConfigFolder()
 
     if path.isfile(path.join(configFolder, '.UIposition')):
         try:

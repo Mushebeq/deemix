@@ -25,5 +25,7 @@ yarn-error.log*
 *.sln
 *.sw?
 
-# Private configs
+# Development stuff
 /config.py
+deemix
+config
