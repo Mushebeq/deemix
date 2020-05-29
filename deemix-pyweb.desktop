@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=deemix
+Comment=A Deezer music downloader
+Exec=deemix-pyweb
+Icon=/usr/lib/deemix-pyweb/icon.svg
+Terminal=false
+Categories=AudioVideo;Audio;Music;
