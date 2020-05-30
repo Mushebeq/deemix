@@ -106,13 +106,15 @@ def on_connect():
 @socketio.on('login')
 def login(arl, force=False, child=0):
     global firstConnection
+    if child == None:
+        child = 0
     emit('toast', {'msg': "Logging in...", 'icon': 'loading', 'dismiss': False, 'id': "login-toast"})
     if not session['dz'].logged_in:
-        result = session['dz'].login_via_arl(arl, child)
+        result = session['dz'].login_via_arl(arl, int(child))
     else:
         if force:
             session['dz'] = Deezer()
-            result = session['dz'].login_via_arl(arl, child)
+            result = session['dz'].login_via_arl(arl, int(child))
             if result == 1:
                 result = 3
         else:
@@ -127,7 +129,7 @@ def login(arl, force=False, child=0):
 
 @socketio.on('changeAccount')
 def changeAccount(child):
-    emit('accountChanged', session['dz'].change_account(child))
+    emit('accountChanged', session['dz'].change_account(int(child)))
     emit('init_favorites', app.getUserFavorites(session['dz']))
 
 
