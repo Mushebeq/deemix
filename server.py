@@ -104,25 +104,31 @@ def on_connect():
 
 
 @socketio.on('login')
-def login(arl, force=False):
+def login(arl, force=False, child=0):
     global firstConnection
     emit('toast', {'msg': "Logging in...", 'icon': 'loading', 'dismiss': False, 'id': "login-toast"})
     if not session['dz'].logged_in:
-        result = session['dz'].login_via_arl(arl)
+        result = session['dz'].login_via_arl(arl, child)
     else:
         if force:
             session['dz'] = Deezer()
-            result = session['dz'].login_via_arl(arl)
+            result = session['dz'].login_via_arl(arl, child)
             if result == 1:
                 result = 3
         else:
             result = 2
     emit('logged_in', {'status': result, 'arl': arl, 'user': session['dz'].user})
+    emit('familyAccounts', session['dz'].childs)
     emit('init_favorites', app.getUserFavorites(session['dz']))
     if firstConnection and result in [1, 3]:
         firstConnection = False
         app.loadDownloadQueue(session['dz'], socket_interface)
 
+
+@socketio.on('changeAccount')
+def changeAccount(child):
+    emit('accountChanged', session['dz'].change_account(child))
+    emit('init_favorites', app.getUserFavorites(session['dz']))
 
 
 @socketio.on('logout')
