@@ -2,9 +2,15 @@
 This is a pywebview wrapper for deemix-webui
 
 ## How to use this
-NOTE: Python 3 is required for this app. Make sure you tick the option to add Python to PATH when installing.<br>
-NOTE: If `python3` is "not a recognized command" try using `python` instead.<br>
-NOTE: If you're on windows you'll need to install cefpython as well: `python3 -m pip install cefpython3 --user`<br>
+NOTES:
+- Python 3 is required for this app. Make sure you tick the option to add Python to PATH when installing.
+- If `python3` is "not a recognized command" try using `python` instead.
+- If you're having issues with the package `wheel` missing use: `python3 -m pip install setuptools wheel --user`
+- If you're on Windows:
+	- Python 3.8 is not supported, you'll need to use Python 3.7 or 3.6
+	- You'll need to install cefpython as well: `python3 -m pip install cefpython3 --user`
+	- You also might need [.NET 4.0](https://www.microsoft.com/en-us/download/details.aspx?id=17718) installed
+
 After installing Python open a terminal/command prompt and install the dependencies using `python3 -m pip install -U -r requirements.txt --user`<br>
 If you're using git to get this repo you should use `git submodule update --init --recursive` as well. If you're just downloading the archive.zip, make sure you download and extract [deemix-webui](https://notabug.org/RemixDev/deemix-webui) into the webui folder.
 Run `python3 server.py` to start the server and then connect to `127.0.0.1:9666`. The GUI should show up.<br>
