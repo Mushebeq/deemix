@@ -5,7 +5,7 @@ This is a pywebview wrapper for deemix-webui
 NOTE: Python 3 is required for this app. Make sure you tick the option to add Python to PATH when installing.<br>
 NOTE: If `python3` is "not a recognized command" try using `python` instead.<br>
 NOTE: If you're on windows you'll need to install cefpython as well: `python3 -m pip install cefpython3 --user`<br>
-After installing Python open a terminal/command prompt and install the dependencies using `python3 -m pip install -r requirements.txt --user`<br>
+After installing Python open a terminal/command prompt and install the dependencies using `python3 -m pip install -U -r requirements.txt --user`<br>
 If you're using git to get this repo you should use `git submodule update --init --recursive` as well. If you're just downloading the archive.zip, make sure you download and extract [deemix-webui](https://notabug.org/RemixDev/deemix-webui) into the webui folder.
 Run `python3 server.py` to start the server and then connect to `127.0.0.1:9666`. The GUI should show up.<br>
 If you don't want to use your browser you can start the GUI by using `python3 deemix_gui.py`<br>
