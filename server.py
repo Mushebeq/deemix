@@ -121,11 +121,12 @@ def login(arl, force=False, child=0):
         else:
             result = 2
     emit('logged_in', {'status': result, 'arl': arl, 'user': session['dz'].user})
-    emit('familyAccounts', session['dz'].childs)
-    emit('init_favorites', app.getUserFavorites(session['dz']))
     if firstConnection and result in [1, 3]:
         firstConnection = False
         app.loadDownloadQueue(session['dz'], socket_interface)
+    if result != 0:
+        emit('familyAccounts', session['dz'].childs)
+        emit('init_favorites', app.getUserFavorites(session['dz']))
 
 
 @socketio.on('changeAccount')
