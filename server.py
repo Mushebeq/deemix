@@ -108,7 +108,7 @@ def login(arl, force=False, child=0):
     global firstConnection
     if child == None:
         child = 0
-    arl = arl.trim()
+    arl = arl.strip()
     emit('toast', {'msg': "Logging in...", 'icon': 'loading', 'dismiss': False, 'id': "login-toast"})
     if not session['dz'].logged_in:
         result = session['dz'].login_via_arl(arl, int(child))
