@@ -1,4 +1,4 @@
-deemix>=1.0.8
+deemix>=1.0.9
 flask
 flask-socketio
 pywebview
