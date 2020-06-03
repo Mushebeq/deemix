@@ -230,7 +230,10 @@ def getTracklist(data):
 @socketio.on('analyzeLink')
 def analyzeLink(link):
     (type, data) = app.analyzeLink(session['dz'], link)
-    emit('analyze_'+type, data)
+    if len(data):
+        emit('analyze_'+type, data)
+    else:
+        emit('analyze_notSupported')
 
 @socketio.on('getChartTracks')
 def getChartTracks(id):
