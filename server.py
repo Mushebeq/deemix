@@ -270,9 +270,13 @@ def openDownloadsFolder():
     elif sys.platform == 'win32':
         subprocess.check_call(['explorer', folder])
 
-def run_server(port, host, portable=None):
+def run_server(port, host="0.0.0.0", portable=None):
     app.initialize(portable)
-    print("Starting server at http://" + host + ":" + str(port))
+    if host == "0.0.0.0":
+        displayHost = "127.0.0.1"
+    else:
+        displayHost = host
+    print("Starting server at http://" + displayHost + ":" + str(port))
     socketio.run(server, host=host, port=port)
 
 

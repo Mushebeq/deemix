@@ -47,7 +47,7 @@ if __name__ == '__main__':
         portable = path.join(path.dirname(path.realpath(__file__)), 'config')
     else:
         portable = None
-    t = Thread(target=run_server, args=(port, url, portable))
+    t = Thread(target=run_server, args=(port, "0.0.0.0", portable))
     t.daemon = True
     t.start()
 
