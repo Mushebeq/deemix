@@ -7,7 +7,7 @@ from deemix.utils.localpaths import getConfigFolder
 
 import os.path as path
 import json
-from os import remove
+from os import remove, chmod
 
 settings = {}
 spotifyHelper = None
@@ -42,6 +42,7 @@ def shutdown(interface=None):
                     'queueComplete': queueComplete,
                     'queueList': resetQueueItems(queueList, queue)
                 }, f)
+            chmod(path.join(configFolder, 'queue.json'), 0o770)
     cancelAllDownloads(interface)
     if interface:
         interface.send("toast", {'msg': "Server is closed."})
