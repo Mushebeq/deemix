@@ -239,6 +239,10 @@ def analyzeLink(link):
 def getChartTracks(id):
     emit('setChartTracks', session['dz'].get_playlist_tracks(id)['data'])
 
+@socketio.on('update_userFavorites')
+def update_userFavorites():
+    emit('updated_userFavorites', app.getUserFavorites(session['dz']))
+
 @socketio.on('update_userSpotifyPlaylists')
 def update_userSpotifyPlaylists(spotifyUser):
     if spotifyUser != False:
