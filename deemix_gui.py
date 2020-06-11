@@ -39,7 +39,7 @@ def save_position():
 
 if __name__ == '__main__':
     url = "127.0.0.1"
-    port = 9666
+    port = 6595
     if len(sys.argv) >= 2:
         try:
             port = int(sys.argv[1])
