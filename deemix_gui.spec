@@ -44,6 +44,7 @@ else:
     exe = EXE(pyz,
               a.scripts,
               [],
+              exclude_binaries=True,
               name='deemix_gui',
               debug=False,
               bootloader_ignore_signals=False,
