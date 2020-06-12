@@ -29,10 +29,10 @@ def save_position():
         y = window.x
         x = window.y
     else:
-        x = window.x
-        y = window.y
-    w = window.width
-    h = window.height
+        x = int(window.x)
+        y = int(window.y)
+    w = int(window.width)
+    h = int(window.height)
     with open(path.join(configFolder, '.UIposition'), 'w') as f:
         f.write("|".join([str(x),str(y),str(w),str(h)]))
     chmod(path.join(configFolder, '.UIposition'), 0o770)
