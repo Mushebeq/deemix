@@ -13,12 +13,12 @@ def tree(src):
         for (root, dirs, files) in os.walk(os.path.normpath(src))]
 
 APP = ['deemix_gui.py']
-DATA_FILES = [tree('webui/public')]
+DATA_FILES = ['webui/public', 'icon.icns']
 OPTIONS = {
     'argv_emulation': False,
     'strip': True,
     'iconfile': 'icon.icns',
-    'includes': ['WebKit', 'Foundation', 'webview']
+    'includes': ['WebKit', 'Foundation', 'webview', 'flask', 'flask-socketio', 'deemix']
     }
 
 setup(
