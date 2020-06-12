@@ -282,6 +282,8 @@ def run_server(port, host="127.0.0.1", portable=None):
 
 if __name__ == '__main__':
     port = 6595
+    host = "127.0.0.1"
+    portable = None
     if len(sys.argv) >= 2:
         try:
             port = int(sys.argv[1])
@@ -289,10 +291,6 @@ if __name__ == '__main__':
             pass
     if '--portable' in sys.argv:
         portable = path.join(path.dirname(path.realpath(__file__)), 'config')
-    else:
-        portable = None
     if '--host' in sys.argv:
         host = str(sys.argv[sys.argv.index("--host")+1])
-    else:
-        host = "127.0.0.1"
     run_server(port, host, portable)
