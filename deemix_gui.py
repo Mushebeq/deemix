@@ -4,7 +4,6 @@ import webview
 from threading import Thread, Lock
 import sys
 import os.path as path
-from os import chmod
 from time import sleep
 from server import run_server
 from http.client import HTTPConnection
@@ -35,7 +34,6 @@ def save_position():
     h = int(window.height)
     with open(path.join(configFolder, '.UIposition'), 'w') as f:
         f.write("|".join([str(x),str(y),str(w),str(h)]))
-    chmod(path.join(configFolder, '.UIposition'), 0o770)
 
 if __name__ == '__main__':
     url = "127.0.0.1"
