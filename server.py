@@ -6,6 +6,7 @@ from os import path
 
 from flask import Flask, render_template, request, session
 from flask_socketio import SocketIO, emit
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 import app
 from deemix.api.deezer import Deezer
@@ -47,6 +48,7 @@ gui_dir = resource_path(path.join('webui', 'public'))
 server = CustomFlask(__name__, static_folder=gui_dir, template_folder=gui_dir)
 server.config['SEND_FILE_MAX_AGE_DEFAULT'] = 1  # disable caching
 socketio = SocketIO(server, async_mode='threading')
+server.wsgi_app = ProxyFix(server.wsgi_app, x_for=1, x_proto=1)
 
 class SocketInterface(MessageInterface):
     def send(self, message, value=None):
