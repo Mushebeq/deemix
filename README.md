@@ -18,6 +18,9 @@ If you don't want to use your browser you can start the GUI by using `python3 de
 
 Having an hard time following these steps? You could try these [tools](https://notabug.org/RemixDev/deemix-tools)
 
+## Feature reuqeusts
+Before asking for a feature [check this out](https://notabug.org/RemixDev/deemix-pyweb/FEATURES.md)
+
 ## What's left to do?
 - Add an auto updater
 - Add installer for windows
