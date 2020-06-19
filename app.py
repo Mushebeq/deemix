@@ -148,6 +148,8 @@ def search(dz, term, type, start, nb):
 
 # Queue functions
 def addToQueue_link(dz, url, bitrate=None, interface=None):
+    if ';' in url:
+        url = url.split(";")
     return addToQueue(dz, spotifyHelper, url, settings, bitrate, interface)
 
 
