@@ -101,7 +101,10 @@ def getUserFavorites(dz):
 def updateUserSpotifyPlaylists(user):
     if user == "" or not spotifyHelper.spotifyEnabled:
         return []
-    return spotifyHelper.get_user_playlists(user)
+    try:
+        return spotifyHelper.get_user_playlists(user)
+    except:
+        return []
 
 
 def updateUserPlaylists(dz):
