@@ -1,5 +1,5 @@
 deemix>=1.0.23
 flask
 flask-socketio
-pywebview
+pywebview==3.2
 cefpython3; platform_system== "Windows"
