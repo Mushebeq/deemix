@@ -32,6 +32,8 @@ def save_position():
         y = int(window.y)
     w = int(window.width)
     h = int(window.height)
+    if w < 0: w = 0
+    if h < 0: h = 0
     with open(path.join(configFolder, '.UIposition'), 'w') as f:
         f.write("|".join([str(x),str(y),str(w),str(h)]))
 
