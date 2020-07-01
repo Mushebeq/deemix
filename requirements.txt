@@ -1,4 +1,4 @@
-deemix>=1.0.23
+deemix>=1.1.2
 flask
 flask-socketio
 pywebview==3.2

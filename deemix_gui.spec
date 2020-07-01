@@ -34,7 +34,7 @@ if sys.platform.startswith('darwin'):
               upx=True,
               upx_exclude=[],
               runtime_tmpdir=None,
-              console=True,
+              console=False,
               icon=f"icon.icns")
     app = BUNDLE(exe,
                  name='deemix_gui.app',
@@ -50,7 +50,7 @@ else:
               bootloader_ignore_signals=False,
               strip=False,
               upx=True,
-              console=True,
+              console=False,
               icon=f"icon.ico")
     coll = COLLECT(exe,
                    a.binaries,
