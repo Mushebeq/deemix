@@ -23,13 +23,8 @@ def url_ok(url, port):
 
 def save_position():
     window = webview.windows[0]
-    # workaround for window position issue in windows
-    if sys.platform == "win32":
-        y = window.x
-        x = window.y
-    else:
-        x = int(window.x)
-        y = int(window.y)
+    x = int(window.x)
+    y = int(window.y)
     w = int(window.width)
     h = int(window.height)
     if x < 0: x = 0
