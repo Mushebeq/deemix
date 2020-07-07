@@ -84,9 +84,18 @@ if __name__ == '__main__':
             'persist_session_cookies': True,
             'cache_path': configFolder
         })
-        webview.start(gui='cef', debug=True)
+        webview.start(gui='cef')
+    if sys.platform == "linux":
+        try:
+            from gi import require_version as rv
+            rv('WebKit2', '4.0')
+            print("Starting with GTK")
+            webview.start()
+        except ValueError:
+            print("Starting with QT")
+            webview.start(gui='qt')
     else:
-        webview.start(debug=True)
+        webview.start()
     conn = HTTPConnection(url, port)
     conn.request('GET', '/shutdown')
     t.join()
