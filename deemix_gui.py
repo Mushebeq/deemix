@@ -91,7 +91,7 @@ if __name__ == '__main__':
             rv('WebKit2', '4.0')
             print("Starting with GTK")
             webview.start()
-        except ValueError:
+        except (ValueError, ImportError):
             print("Starting with QT")
             webview.start(gui='qt')
     else:
