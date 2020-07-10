@@ -1,5 +1,3 @@
 -r requirements.txt
 PyQt5
-PyQt5-sip
 PyQtWebEngine
-pyqtwebengine
