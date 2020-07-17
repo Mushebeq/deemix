@@ -34,6 +34,8 @@ Still need to find a working setup, possible solutions:
 - Translations all in the frontend using js (usefull to have the UI ready to use in other ports of the app)
 - Translating the static strings on the server and the dynamic strings in the js (can be challenging finding a standard scheme that works on the backend and the frontend)
 
+Solution implemented: **using vue-i18n to get the advantages of reactivity**
+
 # Not Approved Features
 ### Stream the track instead of just playing the preview
 This app is not an alternative client for deezer. It's a music downloader.
