@@ -14,12 +14,6 @@ Need help on how to implement this using flask and flask-socketio.
 ### Add search history
 Maybe custom code to add it, or maybe just the autocomplete HTML5 thing.
 
-### More options to save the cover files
-Add option to select what format the cover gets saved where.
-- Separate the png option for Local and Embedded artwork
-- Maybe force JPG for Embedded and add option only for Local
-- Local option save jpg, png or both
-
 # Approved Features
 ### Custom HTML right click menu
 Currently pywebview disabled rightclicking on their webviews so an HTML custom menu needs to be developed to fix this issue.<br>
