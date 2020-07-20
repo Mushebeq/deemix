@@ -12,14 +12,14 @@ NOTES:
 	- You also might need [.NET 4.0](https://www.microsoft.com/en-us/download/details.aspx?id=17718) installed
 
 After installing Python open a terminal/command prompt and install the dependencies using `python3 -m pip install -U -r requirements.txt --user`<br>
-If you're using git to get this repo you should use `git submodule update --init --recursive` as well. If you're just downloading the archive.zip, make sure you download and extract [deemix-webui](https://notabug.org/RemixDev/deemix-webui) into the webui folder.<br>
+If you're using git to get this repo you should use `git submodule update --init --recursive` as well. If you're just downloading the archive.zip, make sure you download and extract [deemix-webui](https://codeberg.org/RemixDev/deemix-webui) into the webui folder.<br>
 Run `python3 server.py` to start the server and then connect to `127.0.0.1:6595`. The GUI should show up.<br>
 If you don't want to use your browser you can start the GUI by using `python3 deemix_gui.py`<br>
 
-Having an hard time following these steps? You could try these [tools](https://notabug.org/RemixDev/deemix-tools)
+Having an hard time following these steps? You could try these [tools](https://codeberg.org/RemixDev/deemix-tools)
 
 ## Feature requests
-Before asking for a feature [check this out](https://notabug.org/RemixDev/deemix-pyweb/src/master/FEATURES.md)
+Before asking for a feature [check this out](https://codeberg.org/RemixDev/deemix-pyweb/src/master/FEATURES.md)
 
 ## What's left to do?
 - Add an auto updater
