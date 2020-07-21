@@ -19,7 +19,7 @@ If you don't want to use your browser you can start the GUI by using `python3 de
 Having an hard time following these steps? You could try these [tools](https://codeberg.org/RemixDev/deemix-tools)
 
 ## Feature requests
-Before asking for a feature [check this out](https://codeberg.org/RemixDev/deemix-pyweb/src/master/FEATURES.md)
+Before asking for a feature [check this out](https://codeberg.org/RemixDev/deemix-pyweb/src/branch/main/FEATURES.md)
 
 ## What's left to do?
 - Add an auto updater
