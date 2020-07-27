@@ -4,7 +4,7 @@ import sys
 import subprocess
 from os import path
 
-from flask import Flask, render_template, request, session
+from flask import Flask, render_template, request, session, redirect
 from flask_socketio import SocketIO, emit
 from werkzeug.middleware.proxy_fix import ProxyFix
 
@@ -72,6 +72,9 @@ firstConnection = True
 def landing():
     return render_template('index.html')
 
+@server.errorhandler(404)
+def not_found_handler(e):
+    return redirect("/")
 
 @server.route('/shutdown')
 def closing():
