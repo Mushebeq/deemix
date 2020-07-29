@@ -169,7 +169,7 @@ def search(data):
 def addToQueue(data):
     result = app.addToQueue_link(session['dz'], data['url'], data['bitrate'], interface=socket_interface)
     if result == "Not logged in":
-        emit('toast', {'msg': "You need to log in to download tracks!", 'icon': 'report'})
+        emit('loginNeededToDownload')
 
 
 @socketio.on('removeFromQueue')
