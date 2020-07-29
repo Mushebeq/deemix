@@ -85,7 +85,7 @@ if __name__ == '__main__':
             'cache_path': configFolder
         })
         webview.start(gui='cef')
-    if sys.platform == "linux":
+    elif sys.platform == "linux":
         try:
             from gi import require_version as rv
             rv('WebKit2', '4.0')
