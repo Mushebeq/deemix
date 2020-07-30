@@ -1,3 +1,4 @@
 -r requirements.txt
 PyQt5
 PyQtWebEngine
+pywebview[qt]>=3.3.1
