@@ -200,14 +200,7 @@ def saveSettings(settings, spotifyCredentials, spotifyUser):
 def getTracklist(data):
     if data['type'] == 'artist':
         artistAPI = session['dz'].get_artist(data['id'])
-        artistAlbumsAPI = session['dz'].get_artist_albums(data['id'])['data']
-        tracksData = {'all': []}
-        for release in artistAlbumsAPI:
-            if not release['record_type'] in tracksData:
-                tracksData[release['record_type']] = []
-            tracksData[release['record_type']].append(release)
-            tracksData['all'].append(release)
-        artistAPI['releases'] = tracksData
+        artistAPI['releases'] = session['dz'].get_artist_discography_gw(data['id'], 100)
         emit('show_artist', artistAPI)
     elif data['type'] == 'spotifyplaylist':
         playlistAPI = app.getSpotifyPlaylistTracklist(data['id'])
