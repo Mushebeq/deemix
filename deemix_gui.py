@@ -40,62 +40,66 @@ if __name__ == '__main__':
             port = int(sys.argv[1])
         except ValueError:
             pass
+    portable = None
+    server = False
     if '--portable' in sys.argv:
         portable = path.join(path.dirname(path.realpath(__file__)), 'config')
-    else:
-        portable = None
+    if '--server' in sys.argv or '-s' in sys.argv:
+        server = True
+
     t = Thread(target=run_server, args=(port, url, portable))
     t.daemon = True
     t.start()
 
-    while not url_ok(url, port):
-        sleep(1)
-    if portable:
-        configFolder = portable
-    else:
-        configFolder = getConfigFolder()
+    if not server:
+        while not url_ok(url, port):
+            sleep(1)
+        if portable:
+            configFolder = portable
+        else:
+            configFolder = getConfigFolder()
 
-    if path.isfile(path.join(configFolder, '.UIposition')):
-        try:
-            with open(path.join(configFolder, '.UIposition'), 'r') as f:
-                (x,y,w,h) = f.read().strip().split("|")
-            x = int(x)
-            y = int(y)
-            w = int(w)
-            h = int(h)
-            if x < 0: x = 0
-            if y < 0: y = 0
-        except:
+        if path.isfile(path.join(configFolder, '.UIposition')):
+            try:
+                with open(path.join(configFolder, '.UIposition'), 'r') as f:
+                    (x,y,w,h) = f.read().strip().split("|")
+                x = int(x)
+                y = int(y)
+                w = int(w)
+                h = int(h)
+                if x < 0: x = 0
+                if y < 0: y = 0
+            except:
+                x = None
+                y = None
+                w = 800
+                h = 600
+        else:
             x = None
             y = None
             w = 800
             h = 600
-    else:
-        x = None
-        y = None
-        w = 800
-        h = 600
-    window = webview.create_window('deemix', 'http://'+url+':'+str(port),
-        confirm_close=True, x=x, y=y, width=w, height=h, text_select=True)
-    window.closing += save_position
-    if sys.platform == "win32":
-        from webview.platforms.cef import settings
-        settings.update({
-            'persist_session_cookies': True,
-            'cache_path': configFolder
-        })
-        webview.start(gui='cef')
-    elif sys.platform == "linux":
-        try:
-            from gi import require_version as rv
-            rv('WebKit2', '4.0')
-            print("Starting with GTK")
+        window = webview.create_window('deemix', 'http://'+url+':'+str(port),
+            confirm_close=True, x=x, y=y, width=w, height=h, text_select=True)
+        window.closing += save_position
+        if sys.platform == "win32":
+            from webview.platforms.cef import settings
+            settings.update({
+                'persist_session_cookies': True,
+                'cache_path': configFolder
+            })
+            webview.start(gui='cef')
+        elif sys.platform == "linux":
+            try:
+                from gi import require_version as rv
+                rv('WebKit2', '4.0')
+                print("Starting with GTK")
+                webview.start()
+            except (ValueError, ImportError):
+                print("Starting with QT")
+                webview.start(gui='qt')
+        else:
             webview.start()
-        except (ValueError, ImportError):
-            print("Starting with QT")
-            webview.start(gui='qt')
-    else:
-        webview.start()
-    conn = HTTPConnection(url, port)
-    conn.request('GET', '/shutdown')
+        conn = HTTPConnection(url, port)
+        conn.request('GET', '/shutdown')
     t.join()

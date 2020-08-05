@@ -272,6 +272,16 @@ def openDownloadsFolder():
     elif sys.platform == 'win32':
         subprocess.check_call(['explorer', folder])
 
+@socketio.on('selectDownloadFolder')
+def selectDownloadFolder():
+    try:
+        import webview
+        result = webview.windows[0].create_file_dialog(webview.FOLDER_DIALOG, allow_multiple=False)
+        if result:
+            emit('downloadFolderSelected', result)
+    except:
+        print("Can't open folder selection, you're not running pywebview")
+
 def run_server(port, host="127.0.0.1", portable=None):
     app.initialize(portable)
     print("Starting server at http://" + host + ":" + str(port))
