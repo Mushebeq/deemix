@@ -80,7 +80,7 @@ if __name__ == '__main__':
             w = 800
             h = 600
         window = webview.create_window('deemix', 'http://'+url+':'+str(port),
-            confirm_close=True, x=x, y=y, width=w, height=h, text_select=True)
+            x=x, y=y, width=w, height=h, text_select=True)
         window.closing += save_position
         if sys.platform == "win32":
             from webview.platforms.cef import settings
