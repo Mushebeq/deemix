@@ -307,23 +307,17 @@ def applogin():
                     url = window.get_current_url()
                 except:
                     url = "https://www.deezer.com/us/login"
-                if "desktop/login/electron/callback" in url:
+                if not "/login" in url:
                     window.loaded -= check_URL
                     window.loaded += get_ARL
                     window.load_url('https://www.deezer.com/ajax/gw-light.php?method=user.getArl&input=3&api_version=1.0&api_token=null')
-                elif url.startswith("deezer:"):
-                    loginWindow = False
-                    window.loaded -= check_URL
-                    window.destroy()
-                    arl = url[17:]
-                    emit('applogin_arl', arl)
             @copy_current_request_context
             def on_close():
                 global loginWindow
                 if loginWindow:
                     loginWindow = False
             if not session['dz'].logged_in:
-                window = webview.create_window('Login into your deezer account', "https://deezer.com/login?source=electron")
+                window = webview.create_window('Login into your deezer account', "https://deezer.com/login")
                 loginWindow = len(webview.windows)-1
                 window.loaded += check_URL
                 window.closed += on_close
