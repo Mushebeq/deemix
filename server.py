@@ -3,8 +3,9 @@ import logging
 import sys
 import subprocess
 from os import path
+import json
 
-from flask import Flask, render_template, request, session, redirect
+from flask import Flask, render_template, request, session, redirect, copy_current_request_context
 from flask_socketio import SocketIO, emit
 from werkzeug.middleware.proxy_fix import ProxyFix
 
@@ -59,6 +60,7 @@ class SocketInterface(MessageInterface):
 
 
 socket_interface = SocketInterface()
+loginWindow = False
 
 serverLog = logging.getLogger('werkzeug')
 serverLog.disabled = True
@@ -279,6 +281,54 @@ def selectDownloadFolder():
         result = webview.windows[0].create_file_dialog(webview.FOLDER_DIALOG, allow_multiple=False)
         if result:
             emit('downloadFolderSelected', result)
+    except:
+        print("Can't open folder selection, you're not running pywebview")
+
+@socketio.on('applogin')
+def applogin():
+    try:
+        import webview
+        global loginWindow
+        if not loginWindow:
+            @copy_current_request_context
+            def get_ARL():
+                global loginWindow
+                window = webview.windows[loginWindow]
+                loginWindow = False
+                window.loaded -= get_ARL
+                arl = json.loads(window.get_elements("body")[0]['innerText'])['results']
+                window.destroy()
+                emit('applogin_arl', arl)
+            @copy_current_request_context
+            def check_URL():
+                global loginWindow
+                window = webview.windows[loginWindow]
+                try:
+                    url = window.get_current_url()
+                except:
+                    url = "https://www.deezer.com/us/login"
+                if "desktop/login/electron/callback" in url:
+                    window.loaded -= check_URL
+                    window.loaded += get_ARL
+                    window.load_url('https://www.deezer.com/ajax/gw-light.php?method=user.getArl&input=3&api_version=1.0&api_token=null')
+                elif url.startswith("deezer:"):
+                    loginWindow = False
+                    window.loaded -= check_URL
+                    window.destroy()
+                    arl = url[17:]
+                    emit('applogin_arl', arl)
+            @copy_current_request_context
+            def on_close():
+                global loginWindow
+                if loginWindow:
+                    loginWindow = False
+            if not session['dz'].logged_in:
+                window = webview.create_window('Login into your deezer account', "https://deezer.com/login?source=electron")
+                loginWindow = len(webview.windows)-1
+                window.loaded += check_URL
+                window.closed += on_close
+            else:
+                emit('logged_in', {'status': 2, 'user': session['dz'].user})
     except:
         print("Can't open folder selection, you're not running pywebview")
 
