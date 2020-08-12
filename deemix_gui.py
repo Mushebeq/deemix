@@ -4,6 +4,7 @@ import webview
 from threading import Thread, Lock
 import sys
 import os.path as path
+from os import makedirs
 from time import sleep
 from server import run_server
 from http.client import HTTPConnection
@@ -84,9 +85,11 @@ if __name__ == '__main__':
         window.closing += save_position
         if sys.platform == "win32":
             from webview.platforms.cef import settings
+            cacheFolder = path.join(configFolder, 'cefCache')
+            makedirs(cacheFolder, exist_ok=True)
             settings.update({
                 'persist_session_cookies': True,
-                'cache_path': configFolder
+                'cache_path': cacheFolder
             })
             webview.start(gui='cef')
         elif sys.platform == "linux":
