@@ -33,7 +33,3 @@ Solution implemented: **using vue-i18n to get the advantages of reactivity**
 # Not Approved Features
 ### Stream the track instead of just playing the preview
 This app is not an alternative client for deezer. It's a music downloader.
-
-### Download larger cover arts than 1800x1800
-I know some releases have larger cover arts, but not all of them have it.
-The coverart size is capped at 1800 as we know that almost all cover arts are available at that size.
