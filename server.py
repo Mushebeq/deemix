@@ -174,6 +174,11 @@ def search(data):
         emit('search', result)
 
 
+@socketio.on('queueRestored')
+def queueRestored():
+    app.queueRestored(session['dz'], socket_interface)
+
+
 @socketio.on('addToQueue')
 def addToQueue(data):
     result = app.addToQueue(session['dz'], data['url'], data['bitrate'], interface=socket_interface)

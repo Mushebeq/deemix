@@ -36,7 +36,10 @@ class deemix:
             interface.send("toast", {'msg': "Server is closed."})
 
     def restoreDownloadQueue(self, dz, interface=None):
-        self.qm.loadQueue(dz, self.sp, self.configFolder, self.set.settings, interface)
+        self.qm.loadQueue(self.configFolder, self.set.settings, interface)
+
+    def queueRestored(self, dz, interface=None):
+        self.qm.nextItem(dz, self.sp, interface)
 
     def get_charts(self, dz):
         if len(self.chartsList) == 0:
