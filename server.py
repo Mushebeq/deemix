@@ -9,9 +9,9 @@ from flask import Flask, render_template, request, session, redirect, copy_curre
 from flask_socketio import SocketIO, emit
 from werkzeug.middleware.proxy_fix import ProxyFix
 
-import app
+from app import deemix
 from deemix.api.deezer import Deezer
-from deemix.app.MessageInterface import MessageInterface
+from deemix.app.messageinterface import MessageInterface
 
 # Workaround for MIME type error in certain Windows installs
 # https://github.com/pallets/flask/issues/1045#issuecomment-42202749
@@ -23,6 +23,8 @@ mimetypes.add_type('text/javascript', '.js')
 # https://github.com/miguelgrinberg/python-engineio/issues/142#issuecomment-545807047
 from engineio.payload import Payload
 Payload.max_decode_packets = 500
+
+app = None
 
 class CustomFlask(Flask):
     jinja_options = Flask.jinja_options.copy()
@@ -82,7 +84,7 @@ def not_found_handler(e):
 def closing():
     app.shutdown(interface=socket_interface)
     socketio.stop()
-    return 'server closed'
+    return 'Server Closed'
 
 serverwide_arl = "--serverwide-arl" in sys.argv
 if serverwide_arl:
@@ -91,9 +93,9 @@ if serverwide_arl:
 @socketio.on('connect')
 def on_connect():
     session['dz'] = Deezer()
-    settings = app.getSettings_link()
+    settings = app.getSettings()
     spotifyCredentials = app.getSpotifyCredentials()
-    defaultSettings = app.getDefaultSettings_link()
+    defaultSettings = app.getDefaultSettings()
     emit('init_settings', (settings, spotifyCredentials, defaultSettings))
     emit('init_autologin')
 
@@ -104,8 +106,13 @@ def on_connect():
             login(arl)
 
     queue, queueComplete, queueList, currentItem = app.initDownloadQueue()
-    emit('init_downloadQueue',
-         {'queue': queue, 'queueComplete': queueComplete, 'queueList': queueList, 'currentItem': currentItem})
+    if len(queueList.keys()):
+        emit('init_downloadQueue',{
+            'queue': queue,
+            'queueComplete': queueComplete,
+            'queueList': queueList,
+            'currentItem': currentItem
+        })
     emit('init_home', session['dz'].get_charts())
     emit('init_charts', app.get_charts(session['dz']))
 
@@ -130,7 +137,7 @@ def login(arl, force=False, child=0):
     emit('logged_in', {'status': result, 'arl': arl, 'user': session['dz'].user})
     if firstConnection and result in [1, 3]:
         firstConnection = False
-        app.loadDownloadQueue(session['dz'], socket_interface)
+        app.restoreDownloadQueue(session['dz'], socket_interface)
     if result != 0:
         emit('familyAccounts', session['dz'].childs)
         emit('init_favorites', app.getUserFavorites(session['dz']))
@@ -167,31 +174,36 @@ def search(data):
         emit('search', result)
 
 
+@socketio.on('queueRestored')
+def queueRestored():
+    app.queueRestored(session['dz'], socket_interface)
+
+
 @socketio.on('addToQueue')
 def addToQueue(data):
-    result = app.addToQueue_link(session['dz'], data['url'], data['bitrate'], interface=socket_interface)
+    result = app.addToQueue(session['dz'], data['url'], data['bitrate'], interface=socket_interface)
     if result == "Not logged in":
         emit('loginNeededToDownload')
 
 
 @socketio.on('removeFromQueue')
 def removeFromQueue(uuid):
-    app.removeFromQueue_link(uuid, interface=socket_interface)
+    app.removeFromQueue(uuid, interface=socket_interface)
 
 
 @socketio.on('removeFinishedDownloads')
 def removeFinishedDownloads():
-    app.removeFinishedDownloads_link(interface=socket_interface)
+    app.removeFinishedDownloads(interface=socket_interface)
 
 
 @socketio.on('cancelAllDownloads')
 def cancelAllDownloads():
-    app.cancelAllDownloads_link(interface=socket_interface)
+    app.cancelAllDownloads(interface=socket_interface)
 
 
 @socketio.on('saveSettings')
 def saveSettings(settings, spotifyCredentials, spotifyUser):
-    app.saveSettings_link(settings)
+    app.saveSettings(settings)
     app.setSpotifyCredentials(spotifyCredentials)
     socketio.emit('updateSettings', (settings, spotifyCredentials))
     if spotifyUser != False:
@@ -327,7 +339,8 @@ def applogin():
         print("Can't open folder selection, you're not running pywebview")
 
 def run_server(port, host="127.0.0.1", portable=None):
-    app.initialize(portable)
+    global app
+    app = deemix(portable)
     print("Starting server at http://" + host + ":" + str(port))
     socketio.run(server, host=host, port=port)
 
