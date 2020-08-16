@@ -1,204 +1,168 @@
 #!/usr/bin/env python3
-from deemix.app.queuemanager import addToQueue, removeFromQueue, getQueue, cancelAllDownloads, removeFinishedDownloads, restoreQueue, slimQueueItems, resetQueueItems
+from deemix.api.deezer import Deezer
+from deemix.app.settings import Settings
+from deemix.app.queuemanager import QueueManager
+from deemix.app.spotifyhelper import SpotifyHelper, emptyPlaylist as emptySpotifyPlaylist
+
 from deemix.utils.misc import getTypeFromLink, getIDFromLink
-from deemix.app.settings import initSettings, getSettings, getDefaultSettings, saveSettings
-from deemix.app.spotify import SpotifyHelper
 from deemix.utils.localpaths import getConfigFolder
+
+#from deemix.app.queuemanager import addToQueue, removeFromQueue, getQueue, cancelAllDownloads, removeFinishedDownloads, restoreQueue, slimQueueItems, resetQueueItems
+#
+#from deemix.app.settings import initSettings, getSettings, getDefaultSettings, saveSettings
+#from deemix.app.spotify import SpotifyHelper
+#
 
 import os.path as path
 import json
-from os import remove
-
-settings = {}
-spotifyHelper = None
-chartsList = []
-configFolder = ""
 
 
-def initialize(portable):
-    global settings
-    global spotifyHelper
-    global defaultSettings
-    global configFolder
-    if portable:
-        configFolder = portable
-    else:
-        configFolder = getConfigFolder()
-    settings = initSettings(configFolder=configFolder)
-    defaultSettings = getDefaultSettings()
-    spotifyHelper = SpotifyHelper(configFolder=configFolder)
+class deemix:
+    def __init__(self, portable):
+        self.configFolder = portable
+        if not portable:
+            self.configFolder = getConfigFolder()
+        self.set = Settings(self.configFolder)
+        self.sp = SpotifyHelper(self.configFolder)
+        self.qm = QueueManager()
 
+        self.chartsList = []
 
-def shutdown(interface=None):
-    global configFolder
-    if settings['saveDownloadQueue']:
-        (queue, queueComplete, queueList, currentItem) = getQueue()
-        if len(queueList) > 0:
-            if currentItem != "":
-                queue.insert(0, currentItem)
-            with open(path.join(configFolder, 'queue.json'), 'w') as f:
-                json.dump({
-                    'queue': queue,
-                    'queueComplete': queueComplete,
-                    'queueList': resetQueueItems(queueList, queue)
-                }, f)
-    cancelAllDownloads(interface)
-    if interface:
-        interface.send("toast", {'msg': "Server is closed."})
-
-def loadDownloadQueue(dz, interface=None):
-    global configFolder
-    if path.isfile(path.join(configFolder, 'queue.json')):
+    def shutdown(self, interface=None):
+        if self.set.settings['saveDownloadQueue']:
+            self.qm.saveQueue(self.configFolder)
+        self.qm.cancelAllDownloads(interface)
         if interface:
-            interface.send('toast', {'msg': "Restoring download queue", 'icon': 'loading', 'dismiss': False,
-                                     'id': 'restoring_queue'})
-        with open(path.join(configFolder, 'queue.json'), 'r') as f:
-            qd = json.load(f)
-        if interface:
-            interface.send('init_downloadQueue',
-                 {'queue': qd['queue'], 'queueComplete': qd['queueComplete'], 'queueList': slimQueueItems(qd['queueList'])})
-        if interface:
-            interface.send('toast', {'msg': "Download queue restored!", 'icon': 'done', 'dismiss': True,
-                                     'id': 'restoring_queue'})
-        remove(path.join(configFolder, 'queue.json'))
-        restoreQueue(qd['queue'], qd['queueComplete'], qd['queueList'], dz, interface)
+            interface.send("toast", {'msg': "Server is closed."})
 
-def getDownloadFolder():
-    global settings
-    return settings['downloadLocation']
+    def restoreDownloadQueue(self, dz, interface=None):
+        self.qm.loadQueue(dz, self.sp, self.configFolder, self.set.settings, interface)
 
-def get_charts(dz):
-    global chartsList
-    if len(chartsList) == 0:
-        temp = dz.get_charts_countries()
-        countries = []
-        for i in range(len(temp)):
-            countries.append({
-                'title': temp[i]['title'].replace("Top ", ""),
-                'id': temp[i]['id'],
-                'picture_small': temp[i]['picture_small'],
-                'picture_medium': temp[i]['picture_medium'],
-                'picture_big': temp[i]['picture_big']
-            })
-        chartsList = countries
-    return chartsList
+    def get_charts(self, dz):
+        if len(self.chartsList) == 0:
+            temp = dz.get_charts_countries()
+            countries = []
+            for i in range(len(temp)):
+                countries.append({
+                    'title': temp[i]['title'].replace("Top ", ""),
+                    'id': temp[i]['id'],
+                    'picture_small': temp[i]['picture_small'],
+                    'picture_medium': temp[i]['picture_medium'],
+                    'picture_big': temp[i]['picture_big']
+                })
+            self.chartsList = countries
+        return self.chartsList
 
-def getUserFavorites(dz):
-    user_id = dz.user['id']
-    result = {}
-    try:
-        result['playlists'] = dz.get_user_playlists(user_id)['data']
-        result['albums'] = dz.get_user_albums(user_id)['data']
-        result['artists'] = dz.get_user_artists(user_id)['data']
-        result['tracks'] = dz.get_user_tracks(user_id)['data']
-    except:
-        result['playlists'] = dz.get_user_playlists_gw(user_id)
-        result['albums'] = dz.get_user_albums_gw(user_id)
-        result['artists'] = dz.get_user_artists_gw(user_id)
-        result['tracks'] = dz.get_user_tracks_gw(user_id)
-    return result
+    def getDownloadFolder(self):
+        return self.set.settings['downloadLocation']
 
-def updateUserSpotifyPlaylists(user):
-    if user == "" or not spotifyHelper.spotifyEnabled:
-        return []
-    try:
-        return spotifyHelper.get_user_playlists(user)
-    except:
-        return []
+    def getUserFavorites(self, dz):
+        user_id = dz.user['id']
+        result = {}
+        try:
+            result['playlists'] = dz.get_user_playlists(user_id)['data']
+            result['albums'] = dz.get_user_albums(user_id)['data']
+            result['artists'] = dz.get_user_artists(user_id)['data']
+            result['tracks'] = dz.get_user_tracks(user_id)['data']
+        except:
+            result['playlists'] = dz.get_user_playlists_gw(user_id)
+            result['albums'] = dz.get_user_albums_gw(user_id)
+            result['artists'] = dz.get_user_artists_gw(user_id)
+            result['tracks'] = dz.get_user_tracks_gw(user_id)
+        return result
 
+    def updateUserSpotifyPlaylists(self, user):
+        if user == "" or not self.sp.spotifyEnabled:
+            return []
+        try:
+            return self.sp.get_user_playlists(user)
+        except:
+            return []
 
-def updateUserPlaylists(dz):
-    user_id = dz.user['id']
-    try:
-        return dz.get_user_playlists(user_id)['data']
-    except:
-        return dz.get_user_playlists_gw(user_id)
+    def updateUserPlaylists(self, dz):
+        user_id = dz.user['id']
+        try:
+            return dz.get_user_playlists(user_id)['data']
+        except:
+            return dz.get_user_playlists_gw(user_id)
 
-def updateUserAlbums(dz):
-    user_id = dz.user['id']
-    try:
-        return dz.get_user_albums(user_id)['data']
-    except:
-        return dz.get_user_albums_gw(user_id)
+    def updateUserAlbums(self, dz):
+        user_id = dz.user['id']
+        try:
+            return dz.get_user_albums(user_id)['data']
+        except:
+            return dz.get_user_albums_gw(user_id)
 
-def updateUserArtists(dz):
-    user_id = dz.user['id']
-    try:
-        return dz.get_user_artists(user_id)['data']
-    except:
-        return dz.get_user_artists_gw(user_id)
+    def updateUserArtists(self, dz):
+        user_id = dz.user['id']
+        try:
+            return dz.get_user_artists(user_id)['data']
+        except:
+            return dz.get_user_artists_gw(user_id)
 
-def updateUserTracks(dz):
-    user_id = dz.user['id']
-    try:
-        return dz.get_user_tracks(user_id)['data']
-    except:
-        return dz.get_user_tracks_gw(user_id)
+    def updateUserTracks(self, dz):
+        user_id = dz.user['id']
+        try:
+            return dz.get_user_tracks(user_id)['data']
+        except:
+            return dz.get_user_tracks_gw(user_id)
 
-def getSpotifyPlaylistTracklist(id):
-    if id == "" or not spotifyHelper.spotifyEnabled:
-        return spotifyHelper.emptyPlaylist
-    return spotifyHelper.get_playlist_tracklist(id)
+    def getSpotifyPlaylistTracklist(self, id):
+        if id == "" or not self.sp.spotifyEnabled:
+            return emptySpotifyPlaylist
+        return self.sp.get_playlist_tracklist(id)
 
-# Search functions
-def mainSearch(dz, term):
-    return dz.search_main_gw(term)
+    # Search functions
+    def mainSearch(self, dz, term):
+        return dz.search_main_gw(term)
+
+    def search(self, dz, term, type, start, nb):
+        return dz.search(term, type, nb, start)
+
+    # Queue functions
+    def addToQueue(self, dz, url, bitrate=None, interface=None):
+        if ';' in url:
+            url = url.split(";")
+        self.qm.addToQueue(dz, self.sp, url, self.set.settings, bitrate, interface)
 
 
-def search(dz, term, type, start, nb):
-    return dz.search(term, type, nb, start)
+    def removeFromQueue(self, uuid, interface=None):
+        self.qm.removeFromQueue(uuid, interface)
 
 
-# Queue functions
-def addToQueue_link(dz, url, bitrate=None, interface=None):
-    if ';' in url:
-        url = url.split(";")
-    return addToQueue(dz, spotifyHelper, url, settings, bitrate, interface)
+    def cancelAllDownloads(self, interface=None):
+        self.qm.cancelAllDownloads(interface)
 
 
-def removeFromQueue_link(uuid, interface=None):
-    removeFromQueue(uuid, interface)
+    def removeFinishedDownloads(self, interface=None):
+        self.qm.removeFinishedDownloads(interface)
 
 
-def cancelAllDownloads_link(interface=None):
-    cancelAllDownloads(interface)
+    def initDownloadQueue(self):
+        (queue, queueComplete, queueList, currentItem) = self.qm.getQueue()
+        return (queue, queueComplete, queueList, currentItem)
 
+    def analyzeLink(self, dz, link):
+        type = getTypeFromLink(link)
+        relID = getIDFromLink(link, type)
+        if type in ["track", "album"]:
+            data = getattr(dz, 'get_' + type)(relID)
+        else:
+            data = {}
+        return (type, data)
 
-def removeFinishedDownloads_link(interface=None):
-    removeFinishedDownloads(interface)
+    # Settings functions
+    def getDefaultSettings(self):
+        return self.set.defaultSettings
 
+    def getSettings(self):
+        return self.set.settings
 
-def initDownloadQueue():
-    (queue, queueComplete, queueList, currentItem) = getQueue()
-    return (queue, queueComplete, slimQueueItems(queueList), currentItem)
+    def saveSettings(self, newSettings):
+        return self.set.saveSettings(newSettings)
 
-def analyzeLink(dz, link):
-    type = getTypeFromLink(link)
-    relID = getIDFromLink(link, type)
-    if type in ["track", "album"]:
-        data = getattr(dz, 'get_' + type)(relID)
-    else:
-        data = {}
-    return (type, data)
+    def getSpotifyCredentials(self):
+        return self.sp.getCredentials()
 
-# Settings functions
-def getDefaultSettings_link():
-    return defaultSettings
-
-
-def getSettings_link():
-    return getSettings()
-
-
-def saveSettings_link(newSettings):
-    global settings
-    settings = newSettings
-    return saveSettings(newSettings)
-
-
-def getSpotifyCredentials():
-    return spotifyHelper.getCredentials()
-
-
-def setSpotifyCredentials(newCredentials):
-    return spotifyHelper.setCredentials(newCredentials)
+    def setSpotifyCredentials(self, newCredentials):
+        return self.sp.setCredentials(newCredentials)
