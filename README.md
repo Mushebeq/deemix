@@ -1,7 +1,7 @@
 # deemix-pyweb
 This is a pywebview wrapper for deemix-webui
 
-## How to use this
+## Installing the app
 NOTES:
 - Python 3 is required for this app. Make sure you tick the option to add Python to PATH when installing.
 - If `python3` is "not a recognized command" try using `python` instead.
@@ -16,10 +16,22 @@ If you're on linux you can choose if you want to use GTK or QT (GTK is the prima
 
 If you're using git to get this repo you should use `git submodule update --init --recursive` as well. If you're just downloading the archive.zip, make sure you download and extract [deemix-webui](https://codeberg.org/RemixDev/deemix-webui) into the webui folder.
 
-Run `python3 server.py` to start the server and then connect to `127.0.0.1:6595`. The GUI should show up.<br>
-If you don't want to use your browser you can start the GUI by using `python3 deemix_gui.py`<br>
-
 Having an hard time following these steps? You could try these [tools](https://codeberg.org/RemixDev/deemix-tools)
+
+## Using the app
+### GUI
+If you want to use the app with a GUI you can start it by using `python3 deemix_gui.py`.<br>
+You can change the port of the server by starting the app with `python3 deemix_gui.py [PORT]`.<br>
+If you want to change the host IP (If you want to access the app from outside of your pc) you can use the `--host custom.host.ip.here` parameter.<br>
+The `--portable` flags creates a local folder for the configs allowing to start the app without creating permanent folders on the host machine.
+
+### Server
+You can run `python3 server.py` or `python3 deemix_gui.py --server` or `python3 deemix_gui.py -s` to start the server.<br>
+The default host and port combination used by the server is `127.0.0.1:6595`.<br>
+You can change the port of the server by starting the app with `python3 server.py [PORT]`.<br>
+Same thing with the host using the `--host custom.host.ip.here` parameter.<br>
+If you want to set a default arl for all connecting clients you can use the `--serverwide-arl` flag. It will use the same arl used by the cli app, that is located inside a file name `.arl` in the config folder.<br>
+The `--portable` flags creates a local folder for the configs allowing to start the app without creating permanent folders on the host machine.
 
 ## Feature requests
 Before asking for a feature [check this out](https://codeberg.org/RemixDev/deemix-pyweb/src/branch/main/FEATURES.md)
