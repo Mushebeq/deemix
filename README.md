@@ -26,11 +26,11 @@ If you want to change the host IP (If you want to access the app from outside of
 The `--portable` flags creates a local folder for the configs allowing to start the app without creating permanent folders on the host machine.
 
 ### Server
-You can run `python3 server.py` or `python3 deemix_gui.py --server` or `python3 deemix_gui.py -s` to start the server.<br>
+You can run `python3 server.py`, `python3 deemix_gui.py --server` or `python3 deemix_gui.py -s` to start the server.<br>
 The default host and port combination used by the server is `127.0.0.1:6595`.<br>
 You can change the port of the server by starting the app with `python3 server.py [PORT]`.<br>
 Same thing with the host using the `--host custom.host.ip.here` parameter.<br>
-If you want to set a default arl for all connecting clients you can use the `--serverwide-arl` flag. It will use the same arl used by the cli app, that is located inside a file name `.arl` in the config folder.<br>
+If you want to set a default arl for all connecting clients you can use the `--serverwide-arl` flag. It will use the same arl used by the cli app, that is located inside a file named `.arl` in the config folder.<br>
 The `--portable` flags creates a local folder for the configs allowing to start the app without creating permanent folders on the host machine.
 
 ## Feature requests
