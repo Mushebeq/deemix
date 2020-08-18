@@ -19,9 +19,7 @@ import json
 
 class deemix:
     def __init__(self, portable):
-        self.configFolder = portable
-        if not portable:
-            self.configFolder = getConfigFolder()
+        self.configFolder = portable or getConfigFolder()
         self.set = Settings(self.configFolder)
         self.sp = SpotifyHelper(self.configFolder)
         self.qm = QueueManager()
