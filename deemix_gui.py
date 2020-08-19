@@ -93,14 +93,7 @@ if __name__ == '__main__':
             })
             webview.start(gui='cef')
         elif sys.platform == "linux":
-            try:
-                from gi import require_version as rv
-                rv('WebKit2', '4.0')
-                print("Starting with GTK")
-                webview.start()
-            except (ValueError, ImportError):
-                print("Starting with QT")
-                webview.start(gui='qt')
+            webview.start(gui='qt')
         else:
             webview.start()
         conn = HTTPConnection(url, port)
