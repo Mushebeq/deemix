@@ -25,6 +25,7 @@ from engineio.payload import Payload
 Payload.max_decode_packets = 500
 
 app = None
+gui = None
 
 class CustomFlask(Flask):
     jinja_options = Flask.jinja_options.copy()
@@ -288,13 +289,12 @@ def openDownloadsFolder():
 
 @socketio.on('selectDownloadFolder')
 def selectDownloadFolder():
-    try:
-        import webview
-        result = webview.windows[0].create_file_dialog(webview.FOLDER_DIALOG, allow_multiple=False)
+    if gui:
+        result = gui.selectDownloadFolder()
         if result:
             emit('downloadFolderSelected', result)
-    except:
-        print("Can't open folder selection, you're not running pywebview")
+    else:
+        print("Can't open folder selection, you're not running the gui")
 
 @socketio.on('applogin')
 def applogin():
@@ -338,9 +338,10 @@ def applogin():
     except:
         print("Can't open folder selection, you're not running pywebview")
 
-def run_server(port, host="127.0.0.1", portable=None):
-    global app
+def run_server(port, host="127.0.0.1", portable=None, mainWindow=None):
+    global app, gui
     app = deemix(portable)
+    gui = mainWindow
     print("Starting server at http://" + host + ":" + str(port))
     socketio.run(server, host=host, port=port)
 
