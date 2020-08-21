@@ -290,7 +290,9 @@ def openDownloadsFolder():
 @socketio.on('selectDownloadFolder')
 def selectDownloadFolder():
     if gui:
-        result = gui.selectDownloadFolder()
+        gui.selectDownloadFolder_trigger.emit()
+        gui._selectDownloadFolder_semaphore.acquire()
+        result = gui.downloadFolder
         if result:
             emit('downloadFolderSelected', result)
     else:
@@ -298,45 +300,55 @@ def selectDownloadFolder():
 
 @socketio.on('applogin')
 def applogin():
-    try:
-        import webview
-        global loginWindow
-        if not loginWindow:
-            @copy_current_request_context
-            def get_ARL():
-                global loginWindow
-                window = webview.windows[loginWindow]
-                loginWindow = False
-                window.loaded -= get_ARL
-                arl = json.loads(window.get_elements("body")[0]['innerText'])['results']
-                window.destroy()
-                emit('applogin_arl', arl)
-            @copy_current_request_context
-            def check_URL():
-                global loginWindow
-                window = webview.windows[loginWindow]
-                try:
-                    url = window.get_current_url()
-                except:
-                    url = "https://www.deezer.com/us/login"
-                if not "/login" in url:
-                    window.loaded -= check_URL
-                    window.loaded += get_ARL
-                    window.load_url('https://www.deezer.com/ajax/gw-light.php?method=user.getArl&input=3&api_version=1.0&api_token=null')
-            @copy_current_request_context
-            def on_close():
-                global loginWindow
-                if loginWindow:
-                    loginWindow = False
-            if not session['dz'].logged_in:
-                window = webview.create_window('Login into your deezer account', "https://deezer.com/login")
-                loginWindow = len(webview.windows)-1
-                window.loaded += check_URL
-                window.closed += on_close
-            else:
-                emit('logged_in', {'status': 2, 'user': session['dz'].user})
-    except:
-        print("Can't open folder selection, you're not running pywebview")
+    if gui:
+        gui.appLogin_trigger.emit()
+        gui._appLogin_semaphore.acquire()
+        if gui.arl:
+            emit('applogin_arl', gui.arl)
+            gui.arl = None
+        else:
+            print("No ARL")
+    else:
+        print("Can't open login page, you're not running the gui")
+    #try:
+    #    import webview
+    #    global loginWindow
+    #    if not loginWindow:
+    #        @copy_current_request_context
+    #        def get_ARL():
+    #            global loginWindow
+    #            window = webview.windows[loginWindow]
+    #            loginWindow = False
+    #            window.loaded -= get_ARL
+    #            arl = json.loads(window.get_elements("body")[0]['innerText'])['results']
+    #            window.destroy()
+    #            emit('applogin_arl', arl)
+    #        @copy_current_request_context
+    #        def check_URL():
+    #            global loginWindow
+    #            window = webview.windows[loginWindow]
+    #            try:
+    #                url = window.get_current_url()
+    #            except:
+    #                url = "https://www.deezer.com/us/login"
+    #            if not "/login" in url:
+    #                window.loaded -= check_URL
+    #                window.loaded += get_ARL
+    #                window.load_url('https://www.deezer.com/ajax/gw-light.php?method=user.getArl&input=3&api_version=1.0&api_token=null')
+    #        @copy_current_request_context
+    #        def on_close():
+    #            global loginWindow
+    #            if loginWindow:
+    #                loginWindow = False
+    #        if not session['dz'].logged_in:
+    #            window = webview.create_window('Login into your deezer account', "https://deezer.com/login")
+    #            loginWindow = len(webview.windows)-1
+    #            window.loaded += check_URL
+    #            window.closed += on_close
+    #        else:
+    #            emit('logged_in', {'status': 2, 'user': session['dz'].user})
+    #except:
+    #    print("Can't open folder selection, you're not running pywebview")
 
 def run_server(port, host="127.0.0.1", portable=None, mainWindow=None):
     global app, gui

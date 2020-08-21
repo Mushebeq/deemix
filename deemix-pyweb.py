@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog
 from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEnginePage
-from PyQt5.QtCore import QUrl
+from PyQt5.QtCore import QUrl, pyqtSignal
 
-from threading import Thread, Lock
+from threading import Thread, Lock, Semaphore
 import sys
 import os.path as path
 from os import makedirs
@@ -15,6 +15,9 @@ from deemix.utils.localpaths import getConfigFolder
 server_lock = Lock()
 
 class MainWindow(QMainWindow):
+    selectDownloadFolder_trigger = pyqtSignal()
+    appLogin_trigger = pyqtSignal()
+
     def __init__(self, title, url, x=None, y=None, w=800, h=600):
         super().__init__()
         self.resize(w, h)
@@ -24,6 +27,14 @@ class MainWindow(QMainWindow):
         self.webview.page().loadFinished.connect(self.finishLoading)
         self.setCentralWidget(self.webview)
         self.url = url
+        
+        self.downloadFolder = None
+        self.selectDownloadFolder_trigger.connect(self.selectDownloadFolder)
+        self._selectDownloadFolder_semaphore = Semaphore(0)
+
+        self.arl = None
+        self.appLogin_trigger.connect(self.appLogin)
+        self._appLogin_semaphore = Semaphore(0)
 
         if x is not None and y is not None:
             self.move(x, y)
@@ -37,7 +48,14 @@ class MainWindow(QMainWindow):
 
     def selectDownloadFolder(self):
         filename = QFileDialog.getExistingDirectory(self, "Select Download Folder", options=QFileDialog.ShowDirsOnly)
-        return filename
+        self.downloadFolder = filename
+        self._selectDownloadFolder_semaphore.release()
+
+    def appLogin(self):
+        loginWindow = QWebEngineView()
+        loginWindow.setUrl(QUrl("https://deezer.com/login"))
+        loginWindow.show()
+        self._appLogin_semaphore.release()
 
     def closeEvent(self, event):
         x = int(self.x())
