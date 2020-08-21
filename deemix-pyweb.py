@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
-from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog
-from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEnginePage
+from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog, QDialog, QVBoxLayout
+from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEnginePage, QWebEngineProfile
 from PyQt5.QtCore import QUrl, pyqtSignal
+
+import json
 
 from threading import Thread, Lock, Semaphore
 import sys
@@ -13,6 +15,48 @@ from http.client import HTTPConnection
 from deemix.utils.localpaths import getConfigFolder
 
 server_lock = Lock()
+
+class LoginWindow(QDialog):
+
+    class CustomPage(QWebEnginePage):
+
+        def acceptNavigationRequest(self, url, type, main):
+            if url.toString() == "https://www.deezer.com/":
+                url = QUrl('https://www.deezer.com/ajax/gw-light.php?method=user.getArl&input=3&api_version=1.0&api_token=null')
+                self.setUrl(url)
+                return False
+            return super().acceptNavigationRequest(url, type, main)
+
+
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.webview = QWebEngineView()
+        profile = QWebEngineProfile(self.webview)
+        profile.clearHttpCache()
+        profile.setPersistentCookiesPolicy(QWebEngineProfile.NoPersistentCookies)
+        profile.setHttpCacheType(QWebEngineProfile.NoCache)
+        self.page = self.CustomPage(profile, self.webview)
+        self.page.loadFinished.connect(self.checkURL)
+        self.webview.setPage(self.page)
+        self.webview.setUrl(QUrl("https://deezer.com/login"))
+        layout = QVBoxLayout()
+        layout.addWidget(self.webview)
+        self.setLayout(layout)
+        self.arl = None
+        self.exec_()
+
+    def checkURL(self, ok):
+        url = self.webview.url().toString()
+        if 'user.getArl' in url:
+            sleep(1)
+            self.webview.page().toPlainText(self.saveARL)
+
+    def saveARL(self, body):
+        if body.startswith("{"):
+            self.arl = json.loads(body)['results']
+            self.accept()
+            self.page = None
+            self.webview = None
 
 class MainWindow(QMainWindow):
     selectDownloadFolder_trigger = pyqtSignal()
@@ -27,7 +71,7 @@ class MainWindow(QMainWindow):
         self.webview.page().loadFinished.connect(self.finishLoading)
         self.setCentralWidget(self.webview)
         self.url = url
-        
+
         self.downloadFolder = None
         self.selectDownloadFolder_trigger.connect(self.selectDownloadFolder)
         self._selectDownloadFolder_semaphore = Semaphore(0)
@@ -52,10 +96,10 @@ class MainWindow(QMainWindow):
         self._selectDownloadFolder_semaphore.release()
 
     def appLogin(self):
-        loginWindow = QWebEngineView()
-        loginWindow.setUrl(QUrl("https://deezer.com/login"))
-        loginWindow.show()
+        loginWindow = LoginWindow(self)
+        self.arl = loginWindow.arl
         self._appLogin_semaphore.release()
+        loginWindow.deleteLater()
 
     def closeEvent(self, event):
         x = int(self.x())
