@@ -25,6 +25,7 @@ class deemix:
         self.qm = QueueManager()
 
         self.chartsList = []
+        self.homeCache = None
 
     def shutdown(self, interface=None):
         if self.set.settings['saveDownloadQueue']:
@@ -54,6 +55,11 @@ class deemix:
             self.chartsList = countries
         return self.chartsList
 
+    def get_home(self, dz):
+        if not self.homeCache:
+            self.homeCache = session['dz'].get_charts()
+        return self.homeCache
+    
     def getDownloadFolder(self):
         return self.set.settings['downloadLocation']
 

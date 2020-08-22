@@ -119,7 +119,7 @@ def on_connect():
 
 @socketio.on('get_home_data')
 def get_home_data():
-    emit('init_home', session['dz'].get_charts())
+    emit('init_home', app.get_home(session['dz']))
 
 @socketio.on('get_charts_data')
 def get_charts_data():
