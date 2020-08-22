@@ -5,6 +5,7 @@ from PyQt5.QtCore import QUrl, pyqtSignal
 from PyQt5.QtGui import QIcon
 
 import json
+import webbrowser
 
 from threading import Thread, Lock, Semaphore
 import sys
@@ -63,6 +64,24 @@ class MainWindow(QMainWindow):
     selectDownloadFolder_trigger = pyqtSignal()
     appLogin_trigger = pyqtSignal()
 
+    class MainWebpage(QWebEnginePage):
+
+        class ExternalWebpage(QWebEnginePage):
+            def __init__(self, parent):
+                super().__init__(parent)
+                self.urlChanged.connect(self.open_browser)
+
+            def open_browser(self, url):
+                page = self.sender()
+                webbrowser.open(url.toString(), 2, True)
+                page.deleteLater()
+
+        def createWindow(self, _type):
+            page = None
+            if _type == QWebEnginePage.WebBrowserTab:
+                page = self.ExternalWebpage(self)
+            return page
+
     def __init__(self, title, url, x=None, y=None, w=800, h=600):
         super().__init__()
         self.resize(w, h)
@@ -70,7 +89,9 @@ class MainWindow(QMainWindow):
         self.setWindowIcon(QIcon(path.join(appDir, 'icon.ico')))
         self.setMinimumSize(800, 600)
         self.webview = QWebEngineView()
-        self.webview.page().loadFinished.connect(self.finishLoading)
+        self.page = self.MainWebpage(self.webview)
+        self.page.loadFinished.connect(self.finishLoading)
+        self.webview.setPage(self.page)
         self.setCentralWidget(self.webview)
         self.url = url
 
