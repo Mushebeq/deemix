@@ -2,6 +2,7 @@
 from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog, QDialog, QVBoxLayout
 from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEnginePage, QWebEngineProfile
 from PyQt5.QtCore import QUrl, pyqtSignal
+from PyQt5.QtGui import QIcon
 
 import json
 
@@ -66,6 +67,7 @@ class MainWindow(QMainWindow):
         super().__init__()
         self.resize(w, h)
         self.setWindowTitle(title)
+        self.setWindowIcon(QIcon(path.join(appDir, 'icon.ico')))
         self.setMinimumSize(800, 600)
         self.webview = QWebEngineView()
         self.webview.page().loadFinished.connect(self.finishLoading)
@@ -169,8 +171,9 @@ if __name__ == '__main__':
             pass
     portable = None
     server = False
+    appDir = path.dirname(path.realpath(__file__))
     if '--portable' in sys.argv:
-        portable = path.join(path.dirname(path.realpath(__file__)), 'config')
+        portable = path.join(appDir, 'config')
     if '--server' in sys.argv or '-s' in sys.argv:
         server = True
 
