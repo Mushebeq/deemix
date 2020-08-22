@@ -18,6 +18,11 @@ from deemix.utils.localpaths import getConfigFolder
 
 server_lock = Lock()
 
+if sys.platform == "win32":
+    import ctypes
+    myappid = 'RemixDev.deemix'
+    ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
+
 class LoginWindow(QDialog):
     class CustomPage(QWebEnginePage):
         def acceptNavigationRequest(self, url, type, main):
