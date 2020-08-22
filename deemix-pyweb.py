@@ -19,7 +19,6 @@ from deemix.utils.localpaths import getConfigFolder
 server_lock = Lock()
 
 class LoginWindow(QDialog):
-
     class CustomPage(QWebEnginePage):
         def acceptNavigationRequest(self, url, type, main):
             if url.toString() == "https://www.deezer.com/":
@@ -32,9 +31,7 @@ class LoginWindow(QDialog):
         super().__init__(parent)
         self.webview = QWebEngineView()
         profile = QWebEngineProfile(self.webview)
-        profile.clearHttpCache()
         profile.setPersistentCookiesPolicy(QWebEngineProfile.NoPersistentCookies)
-        profile.setHttpCacheType(QWebEngineProfile.NoCache)
         self.page = self.CustomPage(profile, self.webview)
         self.page.loadFinished.connect(self.checkURL)
         self.webview.setPage(self.page)
@@ -61,6 +58,11 @@ class MainWindow(QMainWindow):
     appLogin_trigger = pyqtSignal()
 
     class MainWebpage(QWebEnginePage):
+        def __init__(self, parent):
+            super().__init__(parent)
+            actions = [0,1,2,3,10,11,12,13,14,31,16,19,25,26,28,30,32]
+            for a in actions:
+                self.action(a).setVisible(False)
 
         class ExternalWebpage(QWebEnginePage):
             def __init__(self, parent):
