@@ -117,6 +117,13 @@ def on_connect():
     emit('init_home', session['dz'].get_charts())
     emit('init_charts', app.get_charts(session['dz']))
 
+@socketio.on('get_home_data')
+def get_home_data():
+    emit('init_home', session['dz'].get_charts())
+
+@socketio.on('get_charts_data')
+def get_charts_data():
+    emit('init_charts', app.get_charts(session['dz']))
 
 @socketio.on('login')
 def login(arl, force=False, child=0):
