@@ -7,7 +7,7 @@ block_cipher = None
 
 sys.modules['FixTk'] = None
 
-a = Analysis(['deemix-webui.py'],
+a = Analysis(['deemix-pyweb.py'],
              binaries=[],
              datas=[('webui/public', 'webui/public')],
              hiddenimports=['engineio.async_drivers.threading', 'pkg_resources.py2_warn'],
@@ -27,7 +27,7 @@ if sys.platform.startswith('darwin'):
               a.zipfiles,
               a.datas,
               [],
-              name='deemix-webui',
+              name='deemix-pyweb',
               debug=False,
               bootloader_ignore_signals=False,
               strip=False,
@@ -37,7 +37,7 @@ if sys.platform.startswith('darwin'):
               console=False,
               icon=f"icon.icns")
     app = BUNDLE(exe,
-                 name='deemix-webui.app',
+                 name='deemix-pyweb.app',
                  icon="icon.icns",
                  bundle_identifier=None)
 else:
@@ -45,7 +45,7 @@ else:
               a.scripts,
               [],
               exclude_binaries=True,
-              name='deemix-webui',
+              name='deemix-pyweb',
               debug=False,
               bootloader_ignore_signals=False,
               strip=False,
@@ -59,4 +59,4 @@ else:
                    strip=False,
                    upx=True,
                    upx_exclude=[],
-                   name='deemix-webui')
+                   name='deemix-pyweb')
