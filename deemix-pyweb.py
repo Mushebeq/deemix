@@ -21,14 +21,12 @@ server_lock = Lock()
 class LoginWindow(QDialog):
 
     class CustomPage(QWebEnginePage):
-
         def acceptNavigationRequest(self, url, type, main):
             if url.toString() == "https://www.deezer.com/":
                 url = QUrl('https://www.deezer.com/ajax/gw-light.php?method=user.getArl&input=3&api_version=1.0&api_token=null')
                 self.setUrl(url)
                 return False
             return super().acceptNavigationRequest(url, type, main)
-
 
     def __init__(self, parent):
         super().__init__(parent)
@@ -57,8 +55,6 @@ class LoginWindow(QDialog):
         if body.startswith("{"):
             self.arl = json.loads(body)['results']
             self.accept()
-            self.page = None
-            self.webview = None
 
 class MainWindow(QMainWindow):
     selectDownloadFolder_trigger = pyqtSignal()
@@ -122,6 +118,8 @@ class MainWindow(QMainWindow):
         loginWindow = LoginWindow(self)
         self.arl = loginWindow.arl
         self._appLogin_semaphore.release()
+        loginWindow.page.deleteLater()
+        loginWindow.webview.deleteLater()
         loginWindow.deleteLater()
 
     def closeEvent(self, event):
