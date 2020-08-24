@@ -65,7 +65,24 @@ class MainWindow(QMainWindow):
     class MainWebpage(QWebEnginePage):
         def __init__(self, parent):
             super().__init__(parent)
-            actions = [0,1,2,3,10,11,12,13,14,31,16,19,25,26,28,30,32]
+            actions = [
+                QWebEnginePage.Back,
+                QWebEnginePage.Forward,
+                QWebEnginePage.Stop,
+                QWebEnginePage.Reload,
+                QWebEnginePage.ReloadAndBypassCache,
+                QWebEnginePage.PasteAndMatchStyle,
+                QWebEnginePage.OpenLinkInThisWindow,
+                QWebEnginePage.OpenLinkInNewWindow,
+                QWebEnginePage.OpenLinkInNewTab,
+                QWebEnginePage.OpenLinkInNewBackgroundTab,
+                QWebEnginePage.DownloadLinkToDisk,
+                QWebEnginePage.DownloadImageToDisk,
+                QWebEnginePage.DownloadMediaToDisk,
+                QWebEnginePage.InspectElement,
+                QWebEnginePage.RequestClose,
+                QWebEnginePage.SavePage
+            ]
             for a in actions:
                 self.action(a).setVisible(False)
 
