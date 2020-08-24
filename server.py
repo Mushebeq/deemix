@@ -26,6 +26,7 @@ Payload.max_decode_packets = 500
 
 app = None
 gui = None
+arl = None
 
 class CustomFlask(Flask):
     jinja_options = Flask.jinja_options.copy()
@@ -98,13 +99,11 @@ def on_connect():
     spotifyCredentials = app.getSpotifyCredentials()
     defaultSettings = app.getDefaultSettings()
     emit('init_settings', (settings, spotifyCredentials, defaultSettings))
-    emit('init_autologin')
 
-    arl_file_path = path.join(app.configFolder, '.arl')
-    if serverwide_arl and path.isfile(arl_file_path):
-        with open(arl_file_path, 'r') as file:
-            arl = file.readline().rstrip("\n")
-            login(arl)
+    if serverwide_arl:
+        login(arl)
+    else:
+        emit('init_autologin')
 
     queue, queueComplete, queueList, currentItem = app.initDownloadQueue()
     if len(queueList.keys()):
@@ -320,9 +319,11 @@ def applogin():
         print("Can't open login page, you're not running the gui")
 
 def run_server(port, host="127.0.0.1", portable=None, mainWindow=None):
-    global app, gui
+    global app, gui, arl
     app = deemix(portable)
     gui = mainWindow
+    if serverwide_arl:
+        arl = app.getConfigArl()
     print("Starting server at http://" + host + ":" + str(port))
     socketio.run(server, host=host, port=port)
 

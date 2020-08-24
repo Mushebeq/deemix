@@ -7,12 +7,6 @@ from deemix.app.spotifyhelper import SpotifyHelper, emptyPlaylist as emptySpotif
 from deemix.utils.misc import getTypeFromLink, getIDFromLink
 from deemix.utils.localpaths import getConfigFolder
 
-#from deemix.app.queuemanager import addToQueue, removeFromQueue, getQueue, cancelAllDownloads, removeFinishedDownloads, restoreQueue, slimQueueItems, resetQueueItems
-#
-#from deemix.app.settings import initSettings, getSettings, getDefaultSettings, saveSettings
-#from deemix.app.spotify import SpotifyHelper
-#
-
 import os.path as path
 import json
 
@@ -33,6 +27,22 @@ class deemix:
         self.qm.cancelAllDownloads(interface)
         if interface:
             interface.send("toast", {'msg': "Server is closed."})
+
+    def getConfigArl(self):
+        tempDeezer = Deezer()
+        arl = None
+        if path.isfile(path.join(self.configFolder, '.arl')):
+            with open(path.join(self.configFolder, '.arl'), 'r') as f:
+                arl = f.readline().rstrip("\n")
+        if not arl or not tempDeezer.login_via_arl(arl):
+            while True:
+                arl = input("Paste here your arl:")
+                if tempDeezer.login_via_arl(arl):
+                    break
+            with open(path.join(self.configFolder, '.arl'), 'w') as f:
+                f.write(arl)
+        return arl
+
 
     def restoreDownloadQueue(self, dz, interface=None):
         self.qm.loadQueue(self.configFolder, self.set.settings, interface)
@@ -59,7 +69,7 @@ class deemix:
         if not self.homeCache:
             self.homeCache = session['dz'].get_charts()
         return self.homeCache
-    
+
     def getDownloadFolder(self):
         return self.set.settings['downloadLocation']
 
