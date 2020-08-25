@@ -115,6 +115,11 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(self.webview)
         self.url = url
 
+        if dev:
+            self.dev_tools = QWebEngineView()
+            self.webview.page().setDevToolsPage(self.dev_tools.page())
+            self.dev_tools.show()
+
         self.downloadFolder = None
         self.selectDownloadFolder_trigger.connect(self.selectDownloadFolder)
         self._selectDownloadFolder_semaphore = Semaphore(0)
@@ -213,12 +218,11 @@ if __name__ == '__main__':
         except ValueError:
             pass
     portable = None
-    server = False
     appDir = path.dirname(path.realpath(__file__))
     if '--portable' in sys.argv:
         portable = path.join(appDir, 'config')
-    if '--server' in sys.argv or '-s' in sys.argv:
-        server = True
+    server = '--server' in sys.argv or '-s' in sys.argv
+    dev = '--dev' in sys.argv
 
     if not server:
         configFolder = portable or getConfigFolder()
