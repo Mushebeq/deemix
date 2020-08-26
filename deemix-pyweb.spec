@@ -9,11 +9,11 @@ sys.modules['FixTk'] = None
 
 a = Analysis(['deemix-pyweb.py'],
              binaries=[],
-             datas=[('webui/public', 'webui/public')],
+             datas=[('webui/public', 'webui/public'), ('icon.ico', 'icon.ico')],
              hiddenimports=['engineio.async_drivers.threading', 'pkg_resources.py2_warn'],
              hookspath=[],
              runtime_hooks=[],
-             excludes=['FixTk', 'tcl', 'tk', '_tkinter', 'tkinter', 'Tkinter'],
+             excludes=['FixTk', 'tcl', 'tk', '_tkinter', 'tkinter', 'Tkinter', 'mkl', 'whl'],
              win_no_prefer_redirects=False,
              win_private_assemblies=False,
              cipher=block_cipher,
