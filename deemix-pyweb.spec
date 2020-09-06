@@ -9,7 +9,7 @@ sys.modules['FixTk'] = None
 
 a = Analysis(['deemix-pyweb.py'],
              binaries=[],
-             datas=[('webui/public', 'webui/public'), ('icon.ico', 'icon.ico')],
+             datas=[('webui/public', 'webui/public'), ('icon.ico', '.')],
              hiddenimports=['engineio.async_drivers.threading', 'pkg_resources.py2_warn'],
              hookspath=[],
              runtime_hooks=[],
