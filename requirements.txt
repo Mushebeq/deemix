@@ -1,5 +1,3 @@
-deemix>=1.2.7
-flask
-flask-socketio
+-r requirements.txt
 pyqt5
 pyqtwebengine
