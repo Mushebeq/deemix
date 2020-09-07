@@ -4,11 +4,13 @@ import sys
 import subprocess
 from os import path
 import json
+import requests
 
 from flask import Flask, render_template, request, session, redirect, copy_current_request_context
 from flask_socketio import SocketIO, emit
 from werkzeug.middleware.proxy_fix import ProxyFix
 
+from deemix import __version__ as deemixVersion
 from app import deemix
 from deemix.api.deezer import Deezer
 from deemix.app.messageinterface import MessageInterface
@@ -73,6 +75,24 @@ logging.getLogger('engineio').setLevel(logging.ERROR)
 #server.logger.disabled = True
 
 firstConnection = True
+appDir = path.dirname(path.realpath(__file__))
+
+currentCommit = None
+latestCommit = None
+updateAvailable = False
+
+def check_for_updates():
+    global currentCommit, latestCommit, updateAvailable
+    if path.isfile(path.join(appDir, 'commit.txt')):
+        print("Checking for updates...")
+        with open(path.join(appDir, 'commit.txt'), 'r') as f:
+            currentCommit = f.read().strip()
+        latestCommit = requests.get("https://deemix.app/pyweb/latest").text.strip()
+        updateAvailable = currentCommit != latestCommit
+        if updateAvailable:
+            print("Update available! Commit: "+latestCommit)
+        else:
+            print("You're running the latest version")
 
 @server.route('/')
 def landing():
@@ -99,6 +119,12 @@ def on_connect():
     spotifyCredentials = app.getSpotifyCredentials()
     defaultSettings = app.getDefaultSettings()
     emit('init_settings', (settings, spotifyCredentials, defaultSettings))
+    emit('init_update',
+        {'currentCommit': currentCommit,
+        'latestCommit': latestCommit,
+        'updateAvailable': updateAvailable,
+        'deemixVersion': deemixVersion}
+    )
 
     if serverwide_arl:
         login(arl)
@@ -324,6 +350,7 @@ def run_server(port, host="127.0.0.1", portable=None, mainWindow=None):
     gui = mainWindow
     if serverwide_arl:
         arl = app.getConfigArl()
+    check_for_updates()
     print("Starting server at http://" + host + ":" + str(port))
     socketio.run(server, host=host, port=port)
 
