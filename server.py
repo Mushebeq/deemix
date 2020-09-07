@@ -5,6 +5,7 @@ import subprocess
 from os import path
 import json
 import requests
+from urllib.request import urlopen
 
 from flask import Flask, render_template, request, session, redirect, copy_current_request_context
 from flask_socketio import SocketIO, emit
@@ -274,6 +275,8 @@ def getTracklist(data):
 
 @socketio.on('analyzeLink')
 def analyzeLink(link):
+    if 'deezer.page.link' in link:
+        link = urlopen(link).url
     (type, data) = app.analyzeLink(session['dz'], link)
     if len(data):
         emit('analyze_'+type, data)
