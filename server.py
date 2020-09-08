@@ -115,7 +115,7 @@ def check_for_updates():
         if currentVersion and latestVersion:
             updateAvailable = compare_versions(currentVersion, latestVersion)
         if updateAvailable:
-            print("Update available! Commit: "+latestCommit)
+            print("Update available! Commit: "+latestVersion)
         else:
             print("You're running the latest version")
 
@@ -145,8 +145,8 @@ def on_connect():
     defaultSettings = app.getDefaultSettings()
     emit('init_settings', (settings, spotifyCredentials, defaultSettings))
     emit('init_update',
-        {'currentCommit': currentCommit,
-        'latestCommit': latestCommit,
+        {'currentCommit': currentVersion,
+        'latestCommit': latestVersion,
         'updateAvailable': updateAvailable,
         'deemixVersion': deemixVersion}
     )
