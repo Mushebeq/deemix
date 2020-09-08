@@ -4,8 +4,10 @@ import sys
 import subprocess
 from os import path
 import json
+
 import requests
 from urllib.request import urlopen
+from datetime import datetime
 
 from flask import Flask, render_template, request, session, redirect, copy_current_request_context
 from flask_socketio import SocketIO, emit
@@ -80,20 +82,38 @@ logging.getLogger('engineio').setLevel(logging.ERROR)
 #server.logger.disabled = True
 
 firstConnection = True
-appDir = path.dirname(path.realpath(__file__))
 
-currentCommit = None
-latestCommit = None
+currentVersion = None
+latestVersion = None
 updateAvailable = False
 
+def compare_versions(currentVersion, latestVersion):
+    (currentDate, currentCommit) = tuple(currentVersion.split('-'))
+    (latestDate, latestCommit) = tuple(latestVersion.split('-'))
+    currentDate = currentDate.split('.')
+    latestDate = latestDate.split('.')
+    current = datetime(int(currentDate[0]), int(currentDate[1]), int(currentDate[2]))
+    latest = datetime(int(latestDate[0]), int(latestDate[1]), int(latestDate[2]))
+    if latest > current:
+        return True
+    elif latest == current:
+        return latestCommit != currentCommit
+    else:
+         return False
+
 def check_for_updates():
-    global currentCommit, latestCommit, updateAvailable
-    if path.isfile(path.join(appDir, 'commit.txt')):
+    global currentVersion, latestVersion, updateAvailable
+    commitFile = resource_path('version.txt')
+    if path.isfile(commitFile):
         print("Checking for updates...")
-        with open(path.join(appDir, 'commit.txt'), 'r') as f:
-            currentCommit = f.read().strip()
-        latestCommit = requests.get("https://deemix.app/pyweb/latest").text.strip()
-        updateAvailable = currentCommit != latestCommit
+        with open(commitFile, 'r') as f:
+            currentVersion = f.read().strip()
+        try:
+            latestVersion = requests.get("https://deemix.app/pyweb/latest").text.strip()
+        except:
+            latestVersion = None
+        if currentVersion and latestVersion:
+            updateAvailable = compare_versions(currentVersion, latestVersion)
         if updateAvailable:
             print("Update available! Commit: "+latestCommit)
         else:

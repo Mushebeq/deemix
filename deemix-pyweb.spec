@@ -1,5 +1,13 @@
 # -*- mode: python ; coding: utf-8 -*-
 import sys
+from datetime import date
+import subprocess
+
+today = date.today().strftime("%Y.%m.%d")
+commit = str(subprocess.check_output(['git', 'rev-parse', 'HEAD'])[:10])
+version = f"{today}-{commit}"
+with open('version.txt', 'w') as f:
+    f.write(version)
 
 block_cipher = None
 
@@ -7,7 +15,7 @@ sys.modules['FixTk'] = None
 
 a = Analysis(['deemix-pyweb.py'],
              binaries=[],
-             datas=[('webui/public', 'webui'), ('icon.ico', '.')],
+             datas=[('webui/public', 'webui'), ('icon.ico', '.'), ('version.txt', '.')],
              hiddenimports=['engineio.async_drivers.threading', 'pkg_resources.py2_warn'],
              hookspath=[],
              runtime_hooks=[],
