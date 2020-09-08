@@ -9,7 +9,7 @@ sys.modules['FixTk'] = None
 
 a = Analysis(['server.py'],
              binaries=[],
-             datas=[('webui/public', 'webui/public')],
+             datas=[('webui/public', 'webui')],
              hiddenimports=['engineio.async_drivers.threading', 'pkg_resources.py2_warn'],
              hookspath=[],
              runtime_hooks=[],

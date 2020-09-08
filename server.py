@@ -53,6 +53,10 @@ def resource_path(relative_path):
     return path.join(base_path, relative_path)
 
 gui_dir = resource_path(path.join('webui', 'public'))
+if not path.exists(gui_dir):
+    gui_dir = resource_path('webui')
+if not path.isfile(path.join(gui_dir, 'index.html')):
+    sys.exit("WebUI not found, please download and add a WebUI")
 server = CustomFlask(__name__, static_folder=gui_dir, template_folder=gui_dir, static_url_path="")
 server.config['SEND_FILE_MAX_AGE_DEFAULT'] = 1  # disable caching
 socketio = SocketIO(server, async_mode='threading')
