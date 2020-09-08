@@ -4,7 +4,7 @@ from datetime import date
 import subprocess
 
 today = date.today().strftime("%Y.%m.%d")
-commit = str(subprocess.check_output(['git', 'rev-parse', 'HEAD'])[:10])
+commit = subprocess.check_output(['git', 'rev-parse', 'HEAD'])[:10].decode("utf-8")
 version = f"{today}-{commit}"
 with open('version.txt', 'w') as f:
     f.write(version)
