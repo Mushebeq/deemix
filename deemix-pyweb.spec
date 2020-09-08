@@ -1,7 +1,5 @@
 # -*- mode: python ; coding: utf-8 -*-
-import deemix
 import sys
-from os.path import dirname
 
 block_cipher = None
 
@@ -31,7 +29,7 @@ if sys.platform.startswith('darwin'):
               strip=False,
               upx=True,
               console=False,
-              icon=f"icon.icns")
+              icon="icon.icns")
     coll = COLLECT(exe,
                    a.binaries,
                    a.zipfiles,
@@ -44,6 +42,21 @@ if sys.platform.startswith('darwin'):
                  name='deemix-pyweb.app',
                  icon="icon.icns",
                  bundle_identifier=None)
+elif '--onefile' in sys.argv or '-F' in sys.argv:
+    exe = EXE(pyz,
+              a.scripts,
+              a.binaries,
+              a.zipfiles,
+              a.datas,
+              [],
+              name='deemix-pyweb',
+              debug=False,
+              bootloader_ignore_signals=False,
+              strip=False,
+              upx=True,
+              upx_exclude=[],
+              runtime_tmpdir=None,
+              console=False , icon='icon.ico')
 else:
     exe = EXE(pyz,
               a.scripts,
@@ -55,7 +68,7 @@ else:
               strip=False,
               upx=True,
               console=False,
-              icon=f"icon.ico")
+              icon="icon.ico")
     coll = COLLECT(exe,
                    a.binaries,
                    a.zipfiles,
