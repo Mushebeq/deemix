@@ -88,6 +88,8 @@ latestVersion = None
 updateAvailable = False
 
 def compare_versions(currentVersion, latestVersion):
+    if not latestVersion or not currentVersion:
+        return False
     (currentDate, currentCommit) = tuple(currentVersion.split('-'))
     (latestDate, latestCommit) = tuple(latestVersion.split('-'))
     currentDate = currentDate.split('.')
