@@ -111,7 +111,9 @@ def check_for_updates():
         with open(commitFile, 'r') as f:
             currentVersion = f.read().strip()
         try:
-            latestVersion = requests.get("https://deemix.app/pyweb/latest").text.strip()
+            latestVersion = requests.get("https://deemix.app/pyweb/latest")
+            latestVersion.raise_for_status()
+            latestVersion = latestVersion.text.strip()
         except:
             latestVersion = None
         if currentVersion and latestVersion:
