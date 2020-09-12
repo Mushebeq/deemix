@@ -16,7 +16,7 @@ class deemix:
         self.configFolder = portable or getConfigFolder()
         self.set = Settings(self.configFolder)
         self.sp = SpotifyHelper(self.configFolder)
-        self.qm = QueueManager()
+        self.qm = QueueManager(self.sp)
 
         self.chartsList = []
         self.homeCache = None
@@ -48,7 +48,7 @@ class deemix:
         self.qm.loadQueue(self.configFolder, self.set.settings, interface)
 
     def queueRestored(self, dz, interface=None):
-        self.qm.nextItem(dz, self.sp, interface)
+        self.qm.nextItem(dz, interface)
 
     def get_charts(self, dz):
         if len(self.chartsList) == 0:
@@ -140,7 +140,7 @@ class deemix:
     def addToQueue(self, dz, url, bitrate=None, interface=None):
         if ';' in url:
             url = url.split(";")
-        self.qm.addToQueue(dz, self.sp, url, self.set.settings, bitrate, interface)
+        self.qm.addToQueue(dz, url, self.set.settings, bitrate, interface)
 
 
     def removeFromQueue(self, uuid, interface=None):
