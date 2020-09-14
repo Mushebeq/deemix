@@ -233,7 +233,9 @@ def logout():
 @socketio.on('mainSearch')
 def mainSearch(data):
     if data['term'].strip() != "":
-        emit('mainSearch', app.mainSearch(session['dz'], data['term']))
+        result = app.mainSearch(session['dz'], data['term'])
+        result['ack'] = data.get('ack')
+        emit('mainSearch', result)
 
 
 @socketio.on('search')
@@ -241,6 +243,7 @@ def search(data):
     if data['term'].strip() != "":
         result = app.search(session['dz'], data['term'], data['type'], data['start'], data['nb'])
         result['type'] = data['type']
+        result['ack'] = data.get('ack')
         emit('search', result)
 
 
