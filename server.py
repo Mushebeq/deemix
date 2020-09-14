@@ -61,7 +61,7 @@ if not path.isfile(path.join(gui_dir, 'index.html')):
     sys.exit("WebUI not found, please download and add a WebUI")
 server = CustomFlask(__name__, static_folder=gui_dir, template_folder=gui_dir, static_url_path="")
 server.config['SEND_FILE_MAX_AGE_DEFAULT'] = 1  # disable caching
-socketio = SocketIO(server, async_mode='threading')
+socketio = SocketIO(server)
 server.wsgi_app = ProxyFix(server.wsgi_app, x_for=1, x_proto=1)
 
 class SocketInterface(MessageInterface):
