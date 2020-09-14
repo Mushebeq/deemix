@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import logging
+import signal
 import sys
 import subprocess
 from os import path
@@ -123,6 +124,14 @@ def check_for_updates():
         else:
             print("You're running the latest version")
 
+def shutdown(interface=None):
+    if app is not None:
+        app.shutdown(interface=interface)
+    socketio.stop()
+
+def shutdown_handler(signalnum, frame):
+    shutdown()
+    
 @server.route('/')
 def landing():
     return render_template('index.html')
@@ -133,8 +142,7 @@ def not_found_handler(e):
 
 @server.route('/shutdown')
 def closing():
-    app.shutdown(interface=socket_interface)
-    socketio.stop()
+    shutdown(interface=socket_interface)
     return 'Server Closed'
 
 serverwide_arl = "--serverwide-arl" in sys.argv
@@ -399,4 +407,8 @@ if __name__ == '__main__':
         portable = path.join(path.dirname(path.realpath(__file__)), 'config')
     if '--host' in sys.argv:
         host = str(sys.argv[sys.argv.index("--host")+1])
+
+    signal.signal(signal.SIGINT, shutdown_handler)
+    signal.signal(signal.SIGTERM, shutdown_handler)
+
     run_server(port, host, portable)
