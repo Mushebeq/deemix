@@ -251,7 +251,7 @@ def queueRestored():
 
 @socketio.on('addToQueue')
 def addToQueue(data):
-    result = app.addToQueue(session['dz'], data['url'], data['bitrate'], interface=socket_interface)
+    result = app.addToQueue(session['dz'], data['url'], data['bitrate'], interface=socket_interface, ack=data.get('ack'))
     if result == "Not logged in":
         emit('loginNeededToDownload')
 
