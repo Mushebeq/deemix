@@ -71,6 +71,7 @@ class SocketInterface(MessageInterface):
             socketio.emit(message, value)
         else:
             socketio.emit(message)
+        socketio.sleep(0)
 
 
 socket_interface = SocketInterface()
@@ -131,7 +132,7 @@ def shutdown(interface=None):
 
 def shutdown_handler(signalnum, frame):
     shutdown()
-    
+
 @server.route('/')
 def landing():
     return render_template('index.html')
