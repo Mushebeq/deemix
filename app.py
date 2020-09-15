@@ -137,10 +137,10 @@ class deemix:
         return dz.search(term, type, nb, start)
 
     # Queue functions
-    def addToQueue(self, dz, url, bitrate=None, interface=None):
+    def addToQueue(self, dz, url, bitrate=None, interface=None, ack=None):
         if ';' in url:
             url = url.split(";")
-        self.qm.addToQueue(dz, url, self.set.settings, bitrate, interface)
+        self.qm.addToQueue(dz, url, self.set.settings, bitrate, interface, ack)
 
 
     def removeFromQueue(self, uuid, interface=None):
