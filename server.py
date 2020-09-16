@@ -6,8 +6,10 @@ import subprocess
 from os import path
 import json
 
-import requests
-from urllib.request import urlopen
+import eventlet
+requests = eventlet.import_patched('requests')
+urlopen = eventlet.import_patched('urllib.request').urlopen
+
 from datetime import datetime
 
 from flask import Flask, render_template, request, session, redirect, copy_current_request_context
@@ -71,7 +73,6 @@ class SocketInterface(MessageInterface):
             socketio.emit(message, value)
         else:
             socketio.emit(message)
-        socketio.sleep(0)
 
 
 socket_interface = SocketInterface()
