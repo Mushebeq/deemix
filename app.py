@@ -67,7 +67,7 @@ class deemix:
 
     def get_home(self, dz):
         if not self.homeCache:
-            self.homeCache = session['dz'].get_charts()
+            self.homeCache = dz.get_charts()
         return self.homeCache
 
     def getDownloadFolder(self):

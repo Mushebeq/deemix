@@ -178,7 +178,7 @@ def on_connect():
             'queueList': queueList,
             'currentItem': currentItem
         })
-    emit('init_home', session['dz'].get_charts())
+    emit('init_home', app.get_home(session['dz']))
     emit('init_charts', app.get_charts(session['dz']))
 
 @socketio.on('get_home_data')
