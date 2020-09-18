@@ -7,7 +7,7 @@ from os import path
 import json
 
 import eventlet
-requests = eventlet.import_patched('requests.__init__')
+requests = eventlet.import_patched('requests')
 urlopen = eventlet.import_patched('urllib.request').urlopen
 
 from datetime import datetime
