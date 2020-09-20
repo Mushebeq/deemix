@@ -126,6 +126,12 @@ def check_for_updates():
         else:
             print("You're running the latest version")
 
+is_deezer_available = True
+def check_deezer_availability():
+    body = requests.get("https://www.deezer.com/", headers={'Cookie': 'dz_lang=en; Domain=deezer.com; Path=/; Secure; hostOnly=false;'}).text
+    title = body[body.find('<title>')+7:body.find('</title>')]
+    return title.strip() != "Deezer will soon be available in your country."
+
 def shutdown(interface=None):
     if app is not None:
         app.shutdown(interface=interface)
@@ -181,6 +187,8 @@ def on_connect():
         })
     emit('init_home', app.get_home(session['dz']))
     emit('init_charts', app.get_charts(session['dz']))
+    if not is_deezer_available:
+        emit('deezerNotAvailable')
 
 @socketio.on('get_home_data')
 def get_home_data():
@@ -192,7 +200,10 @@ def get_charts_data():
 
 @socketio.on('login')
 def login(arl, force=False, child=0):
-    global firstConnection
+    global firstConnection, is_deezer_available
+    if not is_deezer_available:
+        emit('logged_in', {'status': -1, 'arl': arl, 'user': session['dz'].user})
+        return
     if child == None:
         child = 0
     arl = arl.strip()
@@ -390,12 +401,15 @@ def applogin():
         print("Can't open login page, you're not running the gui")
 
 def run_server(port, host="127.0.0.1", portable=None, mainWindow=None):
-    global app, gui, arl
+    global app, gui, arl, is_deezer_available
     app = deemix(portable)
     gui = mainWindow
     if serverwide_arl:
         arl = app.getConfigArl()
     check_for_updates()
+    if not check_deezer_availability():
+        is_deezer_available = False
+        print("Deezer is not available in your country, you should use a VPN to use this app.")
     print("Starting server at http://" + host + ":" + str(port))
     socketio.run(server, host=host, port=port)
 
