@@ -15,7 +15,7 @@ sys.modules['FixTk'] = None
 
 a = Analysis(['deemix-pyweb.py'],
              binaries=[],
-             datas=[('webui/public', 'webui'), ('icon.ico', '.'), ('splash.png', '.'), ('version.txt', '.')],
+             datas=[('webui/public', 'webui'), ('icon.ico', '.'), ('version.txt', '.')],
              hiddenimports=['PyQt5', 'engineio.async_drivers.threading', 'pkg_resources.py2_warn', 'eventlet.hubs.epolls', 'eventlet.hubs.kqueue', 'eventlet.hubs.selects', 'dns', 'dns.dnssec', 'dns.e164', 'dns.hash', 'dns.namedict', 'dns.tsigkeyring', 'dns.update', 'dns.version', 'dns.zone'],
              hookspath=[],
              runtime_hooks=[],

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog, QDialog, QVBoxLayout, QSplashScreen
+from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog, QDialog, QVBoxLayout
 from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEnginePage, QWebEngineProfile
 from PyQt5.QtCore import QUrl, pyqtSignal
-from PyQt5.QtGui import QIcon, QPixmap
+from PyQt5.QtGui import QIcon
 
 import json
 import webbrowser
@@ -225,10 +225,8 @@ if __name__ == '__main__':
 
     if not server:
         app = QApplication([])
-        splash = QSplashScreen(QPixmap(path.join(appDir, 'splash.png')))
         configFolder = portable or getConfigFolder()
         x,y,w,h = get_position()
-        splash.show()
         window = MainWindow('deemix', 'http://'+url+':'+str(port), x,y,w,h)
         t = Thread(target=run_server, args=(port, url, portable, window))
     else:
@@ -240,7 +238,6 @@ if __name__ == '__main__':
         while not url_ok(url, port):
             sleep(1)
         window.showWindow()
-        splash.finish(window)
         app.exec_()
         conn = HTTPConnection(url, port)
         conn.request('GET', '/shutdown')
