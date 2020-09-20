@@ -155,6 +155,7 @@ if serverwide_arl:
 def on_connect():
     session['dz'] = Deezer()
     settings = app.getSettings()
+    session['dz'].set_accept_language(settings.get('tagsLanguage'))
     spotifyCredentials = app.getSpotifyCredentials()
     defaultSettings = app.getDefaultSettings()
     emit('init_settings', (settings, spotifyCredentials, defaultSettings))
@@ -278,7 +279,7 @@ def cancelAllDownloads():
 
 @socketio.on('saveSettings')
 def saveSettings(settings, spotifyCredentials, spotifyUser):
-    app.saveSettings(settings)
+    app.saveSettings(settings, session['dz'])
     app.setSpotifyCredentials(spotifyCredentials)
     socketio.emit('updateSettings', (settings, spotifyCredentials))
     if spotifyUser != False:

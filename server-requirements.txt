@@ -1,4 +1,4 @@
-deemix>=1.3.13
+deemix>=1.4.0
 flask
 flask-socketio
 eventlet

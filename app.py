@@ -4,7 +4,7 @@ from deemix.app.settings import Settings
 from deemix.app.queuemanager import QueueManager
 from deemix.app.spotifyhelper import SpotifyHelper, emptyPlaylist as emptySpotifyPlaylist
 
-from deemix.utils.misc import getTypeFromLink, getIDFromLink
+from deemix.utils import getTypeFromLink, getIDFromLink
 from deemix.utils.localpaths import getConfigFolder
 
 import os.path as path
@@ -175,8 +175,8 @@ class deemix:
     def getSettings(self):
         return self.set.settings
 
-    def saveSettings(self, newSettings):
-        return self.set.saveSettings(newSettings)
+    def saveSettings(self, newSettings, dz=None):
+        return self.set.saveSettings(newSettings, dz)
 
     def getSpotifyCredentials(self):
         return self.sp.getCredentials()
