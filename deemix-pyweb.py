@@ -147,7 +147,7 @@ class MainWindow(QMainWindow):
 
     def selectDownloadFolder(self):
         filename = QFileDialog.getExistingDirectory(self, "Select Download Folder", options=QFileDialog.ShowDirsOnly)
-        self.downloadFolder = filename
+        self.downloadFolder = filename.replace('/', path.sep)
         self._selectDownloadFolder_semaphore.release()
 
     def appLogin(self):
