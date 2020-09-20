@@ -104,7 +104,12 @@ class MainWindow(QMainWindow):
 
     def __init__(self, title, url, x=None, y=None, w=800, h=600):
         super().__init__()
-        self.resize(w, h)
+        startMaximized = False
+        if w == -1 or h == -1:
+            self.resize(800, 600)
+            startMaximized = True
+        else:
+            self.resize(w, h)
         self.setWindowTitle(title)
         self.setWindowIcon(QIcon(path.join(appDir, 'icon.ico')))
         self.setMinimumSize(800, 600)
@@ -128,11 +133,13 @@ class MainWindow(QMainWindow):
         self.appLogin_trigger.connect(self.appLogin)
         self._appLogin_semaphore = Semaphore(0)
 
-        if x is not None and y is not None:
-            self.move(x, y)
-        else:
+        if x is None or y is None or startMaximized:
             center = QApplication.desktop().availableGeometry().center() - self.rect().center()
             self.move(center.x(), center.y())
+        else:
+            self.move(x, y)
+
+        if startMaximized: self.showMaximized()
 
     def showWindow(self):
         self.webview.setUrl(QUrl(self.url))
@@ -158,6 +165,9 @@ class MainWindow(QMainWindow):
         h = int(self.height())
         if x < 0: x = 0
         if y < 0: y = 0
+        if self.isMaximized():
+            w = -1
+            h = -1
         with open(path.join(configFolder, '.UIposition'), 'w') as f:
             f.write("|".join([str(x),str(y),str(w),str(h)]))
         event.accept()
@@ -174,17 +184,6 @@ def url_ok(url, port):
     except:
         print("Server not started")
         return False
-
-def save_position():
-    window = webview.windows[0]
-    x = int(window.x)
-    y = int(window.y)
-    w = int(window.width)
-    h = int(window.height)
-    if x < 0: x = 0
-    if y < 0: y = 0
-    with open(path.join(configFolder, '.UIposition'), 'w') as f:
-        f.write("|".join([str(x),str(y),str(w),str(h)]))
 
 def get_position():
     if path.isfile(path.join(configFolder, '.UIposition')):
