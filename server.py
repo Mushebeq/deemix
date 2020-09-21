@@ -160,10 +160,8 @@ if serverwide_arl:
 @socketio.on('connect')
 def on_connect():
     session['dz'] = Deezer()
-    settings = app.getSettings()
+    (settings, spotifyCredentials, defaultSettings) = app.getAllSettings()
     session['dz'].set_accept_language(settings.get('tagsLanguage'))
-    spotifyCredentials = app.getSpotifyCredentials()
-    defaultSettings = app.getDefaultSettings()
     emit('init_settings', (settings, spotifyCredentials, defaultSettings))
     emit('init_update',
         {'currentCommit': currentVersion,
@@ -197,6 +195,14 @@ def get_home_data():
 @socketio.on('get_charts_data')
 def get_charts_data():
     emit('init_charts', app.get_charts(session['dz']))
+
+@socketio.on('get_favorites_data')
+def get_favorites_data():
+    emit('init_favorites', app.getUserFavorites(session['dz']))
+
+@socketio.on('get_settings_data')
+def get_settings_data():
+    emit('init_settings', app.getAllSettings())
 
 @socketio.on('login')
 def login(arl, force=False, child=0):

@@ -74,18 +74,19 @@ class deemix:
         return self.set.settings['downloadLocation']
 
     def getUserFavorites(self, dz):
-        user_id = dz.user['id']
         result = {}
-        try:
-            result['playlists'] = dz.get_user_playlists(user_id)['data']
-            result['albums'] = dz.get_user_albums(user_id)['data']
-            result['artists'] = dz.get_user_artists(user_id)['data']
-            result['tracks'] = dz.get_user_tracks(user_id)['data']
-        except:
-            result['playlists'] = dz.get_user_playlists_gw(user_id)
-            result['albums'] = dz.get_user_albums_gw(user_id)
-            result['artists'] = dz.get_user_artists_gw(user_id)
-            result['tracks'] = dz.get_user_tracks_gw(user_id)
+        if dz.logged_in:
+            user_id = dz.user['id']
+            try:
+                result['playlists'] = dz.get_user_playlists(user_id)['data']
+                result['albums'] = dz.get_user_albums(user_id)['data']
+                result['artists'] = dz.get_user_artists(user_id)['data']
+                result['tracks'] = dz.get_user_tracks(user_id)['data']
+            except:
+                result['playlists'] = dz.get_user_playlists_gw(user_id)
+                result['albums'] = dz.get_user_albums_gw(user_id)
+                result['artists'] = dz.get_user_artists_gw(user_id)
+                result['tracks'] = dz.get_user_tracks_gw(user_id)
         return result
 
     def updateUserSpotifyPlaylists(self, user):
@@ -169,6 +170,9 @@ class deemix:
         return (type, data)
 
     # Settings functions
+    def getAllSettings(self):
+        return (self.set.settings, self.sp.getCredentials(), self.set.defaultSettings)
+
     def getDefaultSettings(self):
         return self.set.defaultSettings
 
