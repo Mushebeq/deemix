@@ -151,6 +151,7 @@ class MainWindow(QMainWindow):
         self._selectDownloadFolder_semaphore.release()
 
     def appLogin(self):
+        self.arl = None
         loginWindow = LoginWindow(self)
         self.arl = loginWindow.arl
         self._appLogin_semaphore.release()

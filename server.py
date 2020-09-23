@@ -400,7 +400,6 @@ def applogin():
             gui._appLogin_semaphore.acquire()
             if gui.arl:
                 emit('applogin_arl', gui.arl)
-                gui.arl = None
         else:
             emit('logged_in', {'status': 2, 'user': session['dz'].user})
     else:
