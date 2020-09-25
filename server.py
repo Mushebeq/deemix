@@ -266,6 +266,26 @@ def search(data):
         result['ack'] = data.get('ack')
         emit('search', result)
 
+@socketio.on('albumSearch')
+def albumSearch(data):
+    if data['term'].strip() != "":
+        albums = app.searchAlbum(session['dz'], data['term'], data['start'], data['nb'])
+        output = {
+            'data': albums,
+            'total': len(albums),
+            'ack': data.get('ack')
+        };
+        emit('albumSearch', output)
+
+@socketio.on('newReleases')
+def newReleases(data):
+    result = app.newReleases(session['dz'])
+    output = {
+        'data': result,
+        'total': len(result),
+        'ack': data.get('ack')
+    };
+    emit('newReleases', output)
 
 @socketio.on('queueRestored')
 def queueRestored():

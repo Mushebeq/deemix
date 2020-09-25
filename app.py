@@ -137,6 +137,12 @@ class deemix:
     def search(self, dz, term, type, start, nb):
         return dz.search(term, type, nb, start)
 
+    def searchAlbum(self, dz, term, start, nb):
+        return dz.search_album_gw(term, start, nb)
+
+    def newReleases(self, dz):
+        return dz.get_new_releases()
+
     # Queue functions
     def addToQueue(self, dz, url, bitrate=None, interface=None, ack=None):
         if ';' in url:
