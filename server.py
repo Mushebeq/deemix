@@ -2,11 +2,12 @@
 import logging
 import signal
 import sys
-import subprocess
 from os import path
 import json
 
 import eventlet
+from eventlet import tpool
+from eventlet.green import subprocess
 requests = eventlet.import_patched('requests')
 urlopen = eventlet.import_patched('urllib.request').urlopen
 
@@ -404,26 +405,35 @@ def openDownloadsFolder():
 @socketio.on('selectDownloadFolder')
 def selectDownloadFolder():
     if gui:
-        gui.selectDownloadFolder_trigger.emit()
-        gui._selectDownloadFolder_semaphore.acquire()
-        result = gui.downloadFolder
+        # Must be done with tpool to avoid blocking the greenthread
+        result = tpool.execute(doSelectDowloadFolder)
         if result:
             emit('downloadFolderSelected', result)
     else:
         print("Can't open folder selection, you're not running the gui")
+        
+def doSelectDowloadFolder():
+    gui.selectDownloadFolder_trigger.emit()
+    gui._selectDownloadFolder_semaphore.acquire()
+    return gui.downloadFolder
 
 @socketio.on('applogin')
 def applogin():
     if gui:
         if not session['dz'].logged_in:
-            gui.appLogin_trigger.emit()
-            gui._appLogin_semaphore.acquire()
-            if gui.arl:
-                emit('applogin_arl', gui.arl)
+            # Must be done with tpool to avoid blocking the greenthread
+            arl = tpool.execute(dologin)
+            if arl:
+                emit('applogin_arl', arl)
         else:
             emit('logged_in', {'status': 2, 'user': session['dz'].user})
     else:
         print("Can't open login page, you're not running the gui")
+        
+def dologin():
+    gui.appLogin_trigger.emit()
+    gui._appLogin_semaphore.acquire()
+    return gui.arl
 
 def run_server(port, host="127.0.0.1", portable=None, mainWindow=None):
     global app, gui, arl, is_deezer_available
