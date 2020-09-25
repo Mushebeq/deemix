@@ -7,7 +7,7 @@ from PyQt5.QtGui import QIcon
 import json
 import webbrowser
 
-from threading import Thread, Lock, Semaphore
+from threading import Thread, Semaphore
 import sys
 import os.path as path
 from os import makedirs
@@ -15,8 +15,6 @@ from time import sleep
 from server import run_server
 from http.client import HTTPConnection
 from deemix.utils.localpaths import getConfigFolder
-
-server_lock = Lock()
 
 if sys.platform == "win32":
     import ctypes
