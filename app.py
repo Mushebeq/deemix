@@ -3,14 +3,14 @@ import eventlet
 requests = eventlet.import_patched('requests')
 
 from deemix.api.deezer import Deezer
-from deemix.app.settings import Settings
+from deemix.app.settings import Settings, DEFAULT_SETTINGS
 from deemix.app.queuemanager import QueueManager
 from deemix.app.spotifyhelper import SpotifyHelper, emptyPlaylist as emptySpotifyPlaylist
 
 from deemix.utils import getTypeFromLink, getIDFromLink
 from deemix.utils.localpaths import getConfigFolder
 
-import os.path as path
+from pathlib import Path
 import json
 
 from datetime import datetime
@@ -19,11 +19,11 @@ def resource_path(relative_path):
     """ Get absolute path to resource, works for dev and for PyInstaller """
     try:
         # PyInstaller creates a temp folder and stores path in _MEIPASS
-        base_path = sys._MEIPASS
+        base_path = Path(sys._MEIPASS)
     except Exception:
-        base_path = path.dirname(path.abspath(path.realpath(__file__)))
+        base_path = Path(__file__).resolve().parent
 
-    return path.join(base_path, relative_path)
+    return Path(base_path) / relative_path
 
 class LoginStatus():
     """Login status codes"""
@@ -60,7 +60,7 @@ class deemix:
 
     def checkForUpdates(self):
         commitFile = resource_path('version.txt')
-        if path.isfile(commitFile):
+        if commitFile.is_file():
             print("Checking for updates...")
             with open(commitFile, 'r') as f:
                 self.currentVersion = f.read().strip()
@@ -107,15 +107,15 @@ class deemix:
     def getConfigArl(self):
         tempDeezer = Deezer()
         arl = None
-        if path.isfile(path.join(self.configFolder, '.arl')):
-            with open(path.join(self.configFolder, '.arl'), 'r') as f:
+        if (self.configFolder / '.arl').is_file():
+            with open(self.configFolder / '.arl', 'r') as f:
                 arl = f.readline().rstrip("\n")
         if not arl or not tempDeezer.login_via_arl(arl):
             while True:
                 arl = input("Paste here your arl:")
                 if tempDeezer.login_via_arl(arl):
                     break
-            with open(path.join(self.configFolder, '.arl'), 'w') as f:
+            with open(self.configFolder / '.arl', 'w') as f:
                 f.write(arl)
         return arl
 
@@ -284,10 +284,10 @@ class deemix:
 
     # Settings functions
     def getAllSettings(self):
-        return (self.set.settings, self.sp.getCredentials(), self.set.defaultSettings)
+        return (self.set.settings, self.sp.getCredentials(), DEFAULT_SETTINGS)
 
     def getDefaultSettings(self):
-        return self.set.defaultSettings
+        return DEFAULT_SETTINGS
 
     def getSettings(self):
         return self.set.settings

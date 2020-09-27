@@ -9,7 +9,8 @@ import webbrowser
 
 from threading import Thread, Semaphore
 import sys
-import os.path as path
+from pathlib import Path
+from os.path import sep as pathSep
 from os import makedirs
 from time import sleep
 from server import run_server
@@ -109,7 +110,7 @@ class MainWindow(QMainWindow):
         else:
             self.resize(w, h)
         self.setWindowTitle(title)
-        self.setWindowIcon(QIcon(path.join(appDir, 'icon.ico')))
+        self.setWindowIcon(QIcon(str(appDir / 'icon.ico')))
         self.setMinimumSize(800, 600)
         self.webview = QWebEngineView()
         self.page = self.MainWebpage(self.webview)
@@ -145,7 +146,7 @@ class MainWindow(QMainWindow):
 
     def selectDownloadFolder(self):
         filename = QFileDialog.getExistingDirectory(self, "Select Download Folder", options=QFileDialog.ShowDirsOnly)
-        self.downloadFolder = filename.replace('/', path.sep)
+        self.downloadFolder = filename.replace('/', pathSep)
         self._selectDownloadFolder_semaphore.release()
 
     def appLogin(self):
@@ -167,7 +168,7 @@ class MainWindow(QMainWindow):
         if self.isMaximized():
             w = -1
             h = -1
-        with open(path.join(configFolder, '.UIposition'), 'w') as f:
+        with open(configFolder / '.UIposition', 'w') as f:
             f.write("|".join([str(x),str(y),str(w),str(h)]))
         event.accept()
 
@@ -185,9 +186,9 @@ def url_ok(url, port):
         return False
 
 def get_position():
-    if path.isfile(path.join(configFolder, '.UIposition')):
+    if (configFolder / '.UIposition').is_file():
         try:
-            with open(path.join(configFolder, '.UIposition'), 'r') as f:
+            with open(configFolder / '.UIposition', 'r') as f:
                 (x,y,w,h) = f.read().strip().split("|")
             x = int(x)
             y = int(y)
@@ -216,9 +217,9 @@ if __name__ == '__main__':
         except ValueError:
             pass
     portable = None
-    appDir = path.dirname(path.realpath(__file__))
+    appDir = Path(__file__).parent
     if '--portable' in sys.argv:
-        portable = path.join(appDir, 'config')
+        portable = appDir / 'config'
     server = '--server' in sys.argv or '-s' in sys.argv
     dev = '--dev' in sys.argv
 

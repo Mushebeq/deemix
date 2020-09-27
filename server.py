@@ -2,8 +2,13 @@
 import logging
 import signal
 import sys
-from os import path
+from pathlib import Path
+from os.path import sep as pathSep
 import json
+
+# Import needed to set all sequential requests import eventlet compatible
+import eventlet
+requests = eventlet.import_patched('requests')
 
 from eventlet import tpool
 from eventlet.green import subprocess
@@ -56,13 +61,13 @@ class CustomFlask(Flask):
 
 # Retrocompatibility with old versions of the app
 # Check for public folder and fallback to webui
-GUI_DIR = resource_path(path.join('webui', 'public'))
-if not path.exists(GUI_DIR):
+GUI_DIR = resource_path(f'webui{pathSep}public')
+if not GUI_DIR.exists():
     GUI_DIR = resource_path('webui')
-if not path.isfile(path.join(GUI_DIR, 'index.html')):
+if not (GUI_DIR / 'index.html').is_file():
     sys.exit("WebUI not found, please download and add a WebUI")
 
-server = CustomFlask(__name__, static_folder=GUI_DIR, template_folder=GUI_DIR, static_url_path="")
+server = CustomFlask(__name__, static_folder=str(GUI_DIR), template_folder=str(GUI_DIR), static_url_path="")
 server.config['SEND_FILE_MAX_AGE_DEFAULT'] = 1  # disable caching
 socketio = SocketIO(server)
 server.wsgi_app = ProxyFix(server.wsgi_app, x_for=1, x_proto=1)
@@ -354,7 +359,7 @@ if __name__ == '__main__':
 
     portable = None
     if '--portable' in sys.argv:
-        portable = path.join(path.dirname(path.realpath(__file__)), 'config')
+        portable = Path(__file__).parent / 'config'
     if '--host' in sys.argv:
         host = str(sys.argv[sys.argv.index("--host")+1])
     serverwide_arl = "--serverwide-arl" in sys.argv
