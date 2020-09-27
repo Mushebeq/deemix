@@ -70,13 +70,13 @@ class deemix:
                 self.latestVersion = latestVersion.text.strip()
             except:
                 self.latestVersion = None
-            self.updateAvailable = self.compare_versions()
+            self.updateAvailable = self.compareVersions()
             if self.updateAvailable:
                 print("Update available! Commit: "+self.latestVersion)
             else:
                 print("You're running the latest version")
 
-    def compareVersions():
+    def compareVersions(self):
         if not self.latestVersion or not self.currentVersion:
             return False
         (currentDate, currentCommit) = tuple(self.currentVersion.split('-'))
