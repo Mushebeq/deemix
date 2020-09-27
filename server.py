@@ -5,10 +5,8 @@ import sys
 from os import path
 import json
 
-import eventlet
 from eventlet import tpool
 from eventlet.green import subprocess
-requests = eventlet.import_patched('requests')
 
 from flask import Flask, render_template, request, session, redirect, copy_current_request_context
 from flask_socketio import SocketIO, emit
@@ -250,32 +248,7 @@ def saveSettings(settings, spotifyCredentials, spotifyUser):
 
 @socketio.on('getTracklist')
 def getTracklist(data):
-    if data['type'] == 'artist':
-        artistAPI = session['dz'].get_artist(data['id'])
-        artistAPI['releases'] = session['dz'].get_artist_discography_gw(data['id'], 100)
-        emit('show_artist', artistAPI)
-    elif data['type'] == 'spotifyplaylist':
-        playlistAPI = app.getSpotifyPlaylistTracklist(data['id'])
-        for i in range(len(playlistAPI['tracks'])):
-            playlistAPI['tracks'][i] = playlistAPI['tracks'][i]['track']
-            playlistAPI['tracks'][i]['selected'] = False
-        emit('show_spotifyplaylist', playlistAPI)
-    else:
-        releaseAPI = getattr(session['dz'], 'get_' + data['type'])(data['id'])
-        releaseTracksAPI = getattr(session['dz'], 'get_' + data['type'] + '_tracks')(data['id'])['data']
-        tracks = []
-        showdiscs = False
-        if data['type'] == 'album' and len(releaseTracksAPI) and releaseTracksAPI[-1]['disk_number'] != 1:
-            current_disk = 0
-            showdiscs = True
-        for track in releaseTracksAPI:
-            if showdiscs and int(track['disk_number']) != current_disk:
-                current_disk = int(track['disk_number'])
-                tracks.append({'type': 'disc_separator', 'number': current_disk})
-            track['selected'] = False
-            tracks.append(track)
-        releaseAPI['tracks'] = tracks
-        emit('show_' + data['type'], releaseAPI)
+    emit('show_'+data['type'], app.getTracklist(session['dz'], data))
 
 @socketio.on('analyzeLink')
 def analyzeLink(link):

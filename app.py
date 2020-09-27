@@ -154,6 +154,34 @@ class deemix:
     def getDownloadFolder(self):
         return self.set.settings['downloadLocation']
 
+    def getTracklist(self, dz, data):
+        if data['type'] == 'artist':
+            artistAPI = dz.get_artist(data['id'])
+            artistAPI['releases'] = dz.get_artist_discography_gw(data['id'], 100)
+            return artistAPI
+        elif data['type'] == 'spotifyplaylist':
+            playlistAPI = self.getSpotifyPlaylistTracklist(data['id'])
+            for i in range(len(playlistAPI['tracks'])):
+                playlistAPI['tracks'][i] = playlistAPI['tracks'][i]['track']
+                playlistAPI['tracks'][i]['selected'] = False
+            return playlistAPI
+        else:
+            releaseAPI = getattr(dz, 'get_' + data['type'])(data['id'])
+            releaseTracksAPI = getattr(dz, 'get_' + data['type'] + '_tracks')(data['id'])['data']
+            tracks = []
+            showdiscs = False
+            if data['type'] == 'album' and len(releaseTracksAPI) and releaseTracksAPI[-1]['disk_number'] != 1:
+                current_disk = 0
+                showdiscs = True
+            for track in releaseTracksAPI:
+                if showdiscs and int(track['disk_number']) != current_disk:
+                    current_disk = int(track['disk_number'])
+                    tracks.append({'type': 'disc_separator', 'number': current_disk})
+                track['selected'] = False
+                tracks.append(track)
+            releaseAPI['tracks'] = tracks
+            return releaseAPI
+
     def getUserFavorites(self, dz):
         result = {}
         if dz.logged_in:
