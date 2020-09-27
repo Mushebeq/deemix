@@ -227,7 +227,7 @@ if __name__ == '__main__':
         configFolder = portable or getConfigFolder()
         x,y,w,h = get_position()
         window = MainWindow('deemix', 'http://'+url+':'+str(port), x,y,w,h)
-        t = Thread(target=run_server, args=(port, url, portable, window))
+        t = Thread(target=run_server, args=(url, port, portable, window))
     else:
         t = Thread(target=run_server, args=(port, url, portable))
     t.daemon = True

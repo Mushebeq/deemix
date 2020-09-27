@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+import eventlet
+requests = eventlet.import_patched('requests')
+
 from deemix.api.deezer import Deezer
 from deemix.app.settings import Settings
 from deemix.app.queuemanager import QueueManager
@@ -10,6 +13,35 @@ from deemix.utils.localpaths import getConfigFolder
 import os.path as path
 import json
 
+from datetime import datetime
+
+def resource_path(relative_path):
+    """ Get absolute path to resource, works for dev and for PyInstaller """
+    try:
+        # PyInstaller creates a temp folder and stores path in _MEIPASS
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = path.dirname(path.abspath(path.realpath(__file__)))
+
+    return path.join(base_path, relative_path)
+
+class LoginStatus():
+    """Login status codes"""
+
+    NOT_AVAILABLE = -1
+    """Deezer is not Available in your country"""
+
+    FAILED = 0
+    """Login Failed"""
+
+    SUCCESS = 1
+    """Login Successfull"""
+
+    ALREADY_LOGGED = 2
+    """Already logged in"""
+
+    FORCED_SUCCESS = 3
+    """Forced Login Successfull"""
 
 class deemix:
     def __init__(self, portable):
@@ -20,6 +52,50 @@ class deemix:
 
         self.chartsList = []
         self.homeCache = None
+
+        self.currentVersion = None
+        self.latestVersion = None
+        self.updateAvailable = False
+        self.isDeezerAvailable = True
+
+    def checkForUpdates(self):
+        commitFile = resource_path('version.txt')
+        if path.isfile(commitFile):
+            print("Checking for updates...")
+            with open(commitFile, 'r') as f:
+                self.currentVersion = f.read().strip()
+            try:
+                latestVersion = requests.get("https://deemix.app/pyweb/latest")
+                latestVersion.raise_for_status()
+                self.latestVersion = latestVersion.text.strip()
+            except:
+                self.latestVersion = None
+            self.updateAvailable = self.compare_versions()
+            if self.updateAvailable:
+                print("Update available! Commit: "+self.latestVersion)
+            else:
+                print("You're running the latest version")
+
+    def compareVersions():
+        if not self.latestVersion or not self.currentVersion:
+            return False
+        (currentDate, currentCommit) = tuple(self.currentVersion.split('-'))
+        (latestDate, latestCommit) = tuple(self.latestVersion.split('-'))
+        currentDate = currentDate.split('.')
+        latestDate = latestDate.split('.')
+        current = datetime(int(currentDate[0]), int(currentDate[1]), int(currentDate[2]))
+        latest = datetime(int(latestDate[0]), int(latestDate[1]), int(latestDate[2]))
+        if latest > current:
+            return True
+        elif latest == current:
+            return latestCommit != currentCommit
+        else:
+             return False
+
+    def checkDeezerAvailability(self):
+        body = requests.get("https://www.deezer.com/", headers={'Cookie': 'dz_lang=en; Domain=deezer.com; Path=/; Secure; hostOnly=false;'}).text
+        title = body[body.find('<title>')+7:body.find('</title>')]
+        self.isDeezerAvailable = title.strip() != "Deezer will soon be available in your country."
 
     def shutdown(self, interface=None):
         if self.set.settings['saveDownloadQueue']:
@@ -43,6 +119,11 @@ class deemix:
                 f.write(arl)
         return arl
 
+    def login(self, dz, arl, child):
+        if not dz.logged_in:
+            return int(dz.login_via_arl(arl, child))
+        else:
+            return LoginStatus.ALREADY_LOGGED
 
     def restoreDownloadQueue(self, dz, interface=None):
         self.qm.loadQueue(self.configFolder, self.set.settings, interface)
@@ -149,24 +230,22 @@ class deemix:
             url = url.split(";")
         self.qm.addToQueue(dz, url, self.set.settings, bitrate, interface, ack)
 
-
     def removeFromQueue(self, uuid, interface=None):
         self.qm.removeFromQueue(uuid, interface)
-
 
     def cancelAllDownloads(self, interface=None):
         self.qm.cancelAllDownloads(interface)
 
-
     def removeFinishedDownloads(self, interface=None):
         self.qm.removeFinishedDownloads(interface)
-
 
     def initDownloadQueue(self):
         (queue, queueComplete, queueList, currentItem) = self.qm.getQueue()
         return (queue, queueComplete, queueList, currentItem)
 
     def analyzeLink(self, dz, link):
+        if 'deezer.page.link' in link:
+            link = requests.get(link).url
         type = getTypeFromLink(link)
         relID = getIDFromLink(link, type)
         if type in ["track", "album"]:

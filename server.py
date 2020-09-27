@@ -9,16 +9,13 @@ import eventlet
 from eventlet import tpool
 from eventlet.green import subprocess
 requests = eventlet.import_patched('requests')
-urlopen = eventlet.import_patched('urllib.request').urlopen
-
-from datetime import datetime
 
 from flask import Flask, render_template, request, session, redirect, copy_current_request_context
 from flask_socketio import SocketIO, emit
 from werkzeug.middleware.proxy_fix import ProxyFix
 
-from deemix import __version__ as deemixVersion
-from app import deemix
+from deemix import __version__ as deemix_version
+from app import deemix, LoginStatus, resource_path
 from deemix.api.deezer import Deezer
 from deemix.app.messageinterface import MessageInterface
 
@@ -33,10 +30,21 @@ mimetypes.add_type('text/javascript', '.js')
 from engineio.payload import Payload
 Payload.max_decode_packets = 500
 
-app = None
-gui = None
-arl = None
+# Disable logging
+serverLog = logging.getLogger('werkzeug')
+serverLog.disabled = True
+logging.getLogger('socketio').setLevel(logging.ERROR)
+logging.getLogger('engineio').setLevel(logging.ERROR)
+#server.logger.disabled = True
 
+class SocketInterface(MessageInterface):
+    def send(self, message, value=None):
+        if value:
+            socketio.emit(message, value)
+        else:
+            socketio.emit(message)
+
+# This allows the frontend to use vue.js
 class CustomFlask(Flask):
     jinja_options = Flask.jinja_options.copy()
     jinja_options.update(dict(
@@ -48,98 +56,30 @@ class CustomFlask(Flask):
         comment_end_string='#$',
     ))
 
-def resource_path(relative_path):
-    """ Get absolute path to resource, works for dev and for PyInstaller """
-    try:
-        # PyInstaller creates a temp folder and stores path in _MEIPASS
-        base_path = sys._MEIPASS
-    except Exception:
-        base_path = path.dirname(path.abspath(path.realpath(__file__)))
-
-    return path.join(base_path, relative_path)
-
-gui_dir = resource_path(path.join('webui', 'public'))
-if not path.exists(gui_dir):
-    gui_dir = resource_path('webui')
-if not path.isfile(path.join(gui_dir, 'index.html')):
+# Retrocompatibility with old versions of the app
+# Check for public folder and fallback to webui
+GUI_DIR = resource_path(path.join('webui', 'public'))
+if not path.exists(GUI_DIR):
+    GUI_DIR = resource_path('webui')
+if not path.isfile(path.join(GUI_DIR, 'index.html')):
     sys.exit("WebUI not found, please download and add a WebUI")
-server = CustomFlask(__name__, static_folder=gui_dir, template_folder=gui_dir, static_url_path="")
+
+server = CustomFlask(__name__, static_folder=GUI_DIR, template_folder=GUI_DIR, static_url_path="")
 server.config['SEND_FILE_MAX_AGE_DEFAULT'] = 1  # disable caching
 socketio = SocketIO(server)
 server.wsgi_app = ProxyFix(server.wsgi_app, x_for=1, x_proto=1)
 
-class SocketInterface(MessageInterface):
-    def send(self, message, value=None):
-        if value:
-            socketio.emit(message, value)
-        else:
-            socketio.emit(message)
-
+app = None
+gui = None
+arl = None
 
 socket_interface = SocketInterface()
-loginWindow = False
+first_connection = True
 
-serverLog = logging.getLogger('werkzeug')
-serverLog.disabled = True
-logging.getLogger('socketio').setLevel(logging.ERROR)
-logging.getLogger('engineio').setLevel(logging.ERROR)
-#server.logger.disabled = True
-
-firstConnection = True
-
-currentVersion = None
-latestVersion = None
-updateAvailable = False
-
-def compare_versions(currentVersion, latestVersion):
-    if not latestVersion or not currentVersion:
-        return False
-    (currentDate, currentCommit) = tuple(currentVersion.split('-'))
-    (latestDate, latestCommit) = tuple(latestVersion.split('-'))
-    currentDate = currentDate.split('.')
-    latestDate = latestDate.split('.')
-    current = datetime(int(currentDate[0]), int(currentDate[1]), int(currentDate[2]))
-    latest = datetime(int(latestDate[0]), int(latestDate[1]), int(latestDate[2]))
-    if latest > current:
-        return True
-    elif latest == current:
-        return latestCommit != currentCommit
-    else:
-         return False
-
-def check_for_updates():
-    global currentVersion, latestVersion, updateAvailable
-    commitFile = resource_path('version.txt')
-    if path.isfile(commitFile):
-        print("Checking for updates...")
-        with open(commitFile, 'r') as f:
-            currentVersion = f.read().strip()
-        try:
-            latestVersion = requests.get("https://deemix.app/pyweb/latest")
-            latestVersion.raise_for_status()
-            latestVersion = latestVersion.text.strip()
-        except:
-            latestVersion = None
-        if currentVersion and latestVersion:
-            updateAvailable = compare_versions(currentVersion, latestVersion)
-        if updateAvailable:
-            print("Update available! Commit: "+latestVersion)
-        else:
-            print("You're running the latest version")
-
-is_deezer_available = True
-def check_deezer_availability():
-    body = requests.get("https://www.deezer.com/", headers={'Cookie': 'dz_lang=en; Domain=deezer.com; Path=/; Secure; hostOnly=false;'}).text
-    title = body[body.find('<title>')+7:body.find('</title>')]
-    return title.strip() != "Deezer will soon be available in your country."
-
-def shutdown(interface=None):
+def shutdown():
     if app is not None:
-        app.shutdown(interface=interface)
+        app.shutdown(socket_interface)
     socketio.stop()
-
-def shutdown_handler(signalnum, frame):
-    shutdown()
 
 @server.route('/')
 def landing():
@@ -151,12 +91,8 @@ def not_found_handler(e):
 
 @server.route('/shutdown')
 def closing():
-    shutdown(interface=socket_interface)
+    shutdown()
     return 'Server Closed'
-
-serverwide_arl = "--serverwide-arl" in sys.argv
-if serverwide_arl:
-    print("Server-wide ARL enabled.")
 
 @socketio.on('connect')
 def on_connect():
@@ -164,14 +100,20 @@ def on_connect():
     (settings, spotifyCredentials, defaultSettings) = app.getAllSettings()
     session['dz'].set_accept_language(settings.get('tagsLanguage'))
     emit('init_settings', (settings, spotifyCredentials, defaultSettings))
-    emit('init_update',
-        {'currentCommit': currentVersion,
-        'latestCommit': latestVersion,
-        'updateAvailable': updateAvailable,
-        'deemixVersion': deemixVersion}
+
+    if first_connection:
+        app.checkForUpdates()
+        app.checkDeezerAvailability()
+
+    emit('init_update',{
+            'currentCommit': app.currentVersion,
+            'latestCommit': app.latestVersion,
+            'updateAvailable': app.updateAvailable,
+            'deemixVersion': deemix_version
+        }
     )
 
-    if serverwide_arl:
+    if arl:
         login(arl)
     else:
         emit('init_autologin')
@@ -184,9 +126,11 @@ def on_connect():
             'queueList': queueList,
             'currentItem': currentItem
         })
+
     emit('init_home', app.get_home(session['dz']))
     emit('init_charts', app.get_charts(session['dz']))
-    if not is_deezer_available:
+
+    if not app.isDeezerAvailable:
         emit('deezerNotAvailable')
 
 @socketio.on('get_home_data')
@@ -207,49 +151,38 @@ def get_settings_data():
 
 @socketio.on('login')
 def login(arl, force=False, child=0):
-    global firstConnection, is_deezer_available
-    if not is_deezer_available:
-        emit('logged_in', {'status': -1, 'arl': arl, 'user': session['dz'].user})
+    global first_connection
+
+    if not app.isDeezerAvailable:
+        emit('logged_in', {'status': LoginStatus.NOT_AVAILABLE, 'arl': arl, 'user': session['dz'].user})
         return
-    if child == None:
-        child = 0
+
+    if child == None: child = 0
     arl = arl.strip()
     emit('logging_in')
-    if not session['dz'].logged_in:
-        result = session['dz'].login_via_arl(arl, int(child))
-    else:
-        if force:
-            session['dz'] = Deezer()
-            result = session['dz'].login_via_arl(arl, int(child))
-            if result == 1:
-                result = 3
-        else:
-            result = 2
+
+    if force: session['dz'] = Deezer()
+    result = app.login(session['dz'], arl, int(child))
+    if force and result == LoginStatus.SUCCESS: result = LoginStatus.FORCED_SUCCESS
+
     emit('logged_in', {'status': result, 'arl': arl, 'user': session['dz'].user})
-    if firstConnection and result in [1, 3]:
-        firstConnection = False
+    if first_connection and result in [LoginStatus.SUCCESS, LoginStatus.FORCED_SUCCESS]:
+        first_connection = False
         app.restoreDownloadQueue(session['dz'], socket_interface)
     if result != 0:
         emit('familyAccounts', session['dz'].childs)
         emit('init_favorites', app.getUserFavorites(session['dz']))
-
 
 @socketio.on('changeAccount')
 def changeAccount(child):
     emit('accountChanged', session['dz'].change_account(int(child)))
     emit('init_favorites', app.getUserFavorites(session['dz']))
 
-
 @socketio.on('logout')
 def logout():
-    status = 0
     if session['dz'].logged_in:
         session['dz'] = Deezer()
-        status = 0
-    else:
-        status = 1
-    emit('logged_out', status)
-
+    emit('logged_out')
 
 @socketio.on('mainSearch')
 def mainSearch(data):
@@ -257,7 +190,6 @@ def mainSearch(data):
         result = app.mainSearch(session['dz'], data['term'])
         result['ack'] = data.get('ack')
         emit('mainSearch', result)
-
 
 @socketio.on('search')
 def search(data):
@@ -292,28 +224,21 @@ def newReleases(data):
 def queueRestored():
     app.queueRestored(session['dz'], socket_interface)
 
-
 @socketio.on('addToQueue')
 def addToQueue(data):
     result = app.addToQueue(session['dz'], data['url'], data['bitrate'], interface=socket_interface, ack=data.get('ack'))
-    if result == "Not logged in":
-        emit('loginNeededToDownload')
-
 
 @socketio.on('removeFromQueue')
 def removeFromQueue(uuid):
     app.removeFromQueue(uuid, interface=socket_interface)
 
-
 @socketio.on('removeFinishedDownloads')
 def removeFinishedDownloads():
     app.removeFinishedDownloads(interface=socket_interface)
 
-
 @socketio.on('cancelAllDownloads')
 def cancelAllDownloads():
     app.cancelAllDownloads(interface=socket_interface)
-
 
 @socketio.on('saveSettings')
 def saveSettings(settings, spotifyCredentials, spotifyUser):
@@ -322,7 +247,6 @@ def saveSettings(settings, spotifyCredentials, spotifyUser):
     socketio.emit('updateSettings', (settings, spotifyCredentials))
     if spotifyUser != False:
         emit('updated_userSpotifyPlaylists', app.updateUserSpotifyPlaylists(spotifyUser))
-
 
 @socketio.on('getTracklist')
 def getTracklist(data):
@@ -355,8 +279,6 @@ def getTracklist(data):
 
 @socketio.on('analyzeLink')
 def analyzeLink(link):
-    if 'deezer.page.link' in link:
-        link = urlopen(link).url
     (type, data) = app.analyzeLink(session['dz'], link)
     if len(data):
         emit('analyze_'+type, data)
@@ -411,7 +333,7 @@ def selectDownloadFolder():
             emit('downloadFolderSelected', result)
     else:
         print("Can't open folder selection, you're not running the gui")
-        
+
 def doSelectDowloadFolder():
     gui.selectDownloadFolder_trigger.emit()
     gui._selectDownloadFolder_semaphore.acquire()
@@ -429,41 +351,42 @@ def applogin():
             emit('logged_in', {'status': 2, 'user': session['dz'].user})
     else:
         print("Can't open login page, you're not running the gui")
-        
+
 def dologin():
     gui.appLogin_trigger.emit()
     gui._appLogin_semaphore.acquire()
     return gui.arl
 
-def run_server(port, host="127.0.0.1", portable=None, mainWindow=None):
-    global app, gui, arl, is_deezer_available
+def run_server(host="127.0.0.1", port=6595, portable=None, guiWindow=None, server_arl=False):
+    global app, gui, arl
     app = deemix(portable)
-    gui = mainWindow
-    if serverwide_arl:
+    gui = guiWindow
+    if server_arl:
+        print("Server-wide ARL enabled.")
         arl = app.getConfigArl()
-    check_for_updates()
-    if not check_deezer_availability():
-        is_deezer_available = False
-        print("Deezer is not available in your country, you should use a VPN to use this app.")
     print("Starting server at http://" + host + ":" + str(port))
     socketio.run(server, host=host, port=port)
 
+def shutdown_handler(signalnum, frame):
+    shutdown()
 
 if __name__ == '__main__':
-    port = 6595
     host = "127.0.0.1"
-    portable = None
+    port = 6595
     if len(sys.argv) >= 2:
         try:
             port = int(sys.argv[1])
         except ValueError:
             pass
+
+    portable = None
     if '--portable' in sys.argv:
         portable = path.join(path.dirname(path.realpath(__file__)), 'config')
     if '--host' in sys.argv:
         host = str(sys.argv[sys.argv.index("--host")+1])
+    serverwide_arl = "--serverwide-arl" in sys.argv
 
     signal.signal(signal.SIGINT, shutdown_handler)
     signal.signal(signal.SIGTERM, shutdown_handler)
 
-    run_server(port, host, portable)
+    run_server(host, port, portable, server_arl=serverwide_arl)
