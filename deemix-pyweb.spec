@@ -13,6 +13,8 @@ block_cipher = None
 
 sys.modules['FixTk'] = None
 
+debug = '-c' in sys.argv or '--console' in sys.argv
+
 a = Analysis(['deemix-pyweb.py'],
              binaries=[],
              datas=[('webui/public', 'webui'), ('icon.ico', '.'), ('version.txt', '.')],
@@ -36,7 +38,7 @@ if sys.platform.startswith('darwin'):
               bootloader_ignore_signals=False,
               strip=False,
               upx=True,
-              console=False,
+              console=debug,
               icon="icon.icns")
     coll = COLLECT(exe,
                    a.binaries,
@@ -64,7 +66,7 @@ elif '--onefile' in sys.argv or '-F' in sys.argv:
               upx=True,
               upx_exclude=[],
               runtime_tmpdir=None,
-              console=False , icon='icon.ico')
+              console=debug , icon='icon.ico')
 else:
     exe = EXE(pyz,
               a.scripts,
@@ -75,7 +77,7 @@ else:
               bootloader_ignore_signals=False,
               strip=False,
               upx=True,
-              console=False,
+              console=debug,
               icon="icon.ico")
     coll = COLLECT(exe,
                    a.binaries,
