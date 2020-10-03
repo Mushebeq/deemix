@@ -104,19 +104,28 @@ class deemix:
         if interface:
             interface.send("toast", {'msg': "Server is closed."})
 
+    def getArl(self, tempDz):
+        while True:
+            arl = input("Paste here your arl: ")
+            if not tempDz.login_via_arl(arl):
+                print("ARL doesnt work. Mistyped or expired?")
+            else:
+                break
+        with open(self.configFolder / '.arl', 'w') as f:
+            f.write(arl)
+        return arl
+
     def getConfigArl(self):
-        tempDeezer = Deezer()
+        tempDz = Deezer()
         arl = None
         if (self.configFolder / '.arl').is_file():
             with open(self.configFolder / '.arl', 'r') as f:
                 arl = f.readline().rstrip("\n")
-        if not arl or not tempDeezer.login_via_arl(arl):
-            while True:
-                arl = input("Paste here your arl:")
-                if tempDeezer.login_via_arl(arl):
-                    break
-            with open(self.configFolder / '.arl', 'w') as f:
-                f.write(arl)
+            if not tempDz.login_via_arl(arl):
+                print("Saved ARL mistyped or expired, please enter a new one")
+                return self.getArl(tempDz)
+        else:
+            return self.getArl(tempDz)
         return arl
 
     def login(self, dz, arl, child):
