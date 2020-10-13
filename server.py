@@ -133,8 +133,8 @@ def on_connect():
     emit('init_home', app.get_home(session['dz']))
     emit('init_charts', app.get_charts(session['dz']))
 
-    if not app.isDeezerAvailable:
-        emit('deezerNotAvailable')
+    if app.updateAvailable: emit('updateAvailable')
+    if not app.isDeezerAvailable: emit('deezerNotAvailable')
 
 @socketio.on('get_home_data')
 def get_home_data():
@@ -343,7 +343,12 @@ def run_server(host="127.0.0.1", port=6595, portable=None, guiWindow=None, serve
         print("Server-wide ARL enabled.")
         arl = app.getConfigArl()
     print("Starting server at http://" + host + ":" + str(port))
-    socketio.run(server, host=host, port=port)
+    try:
+        socketio.run(server, host=host, port=port)
+    except UnicodeDecodeError as e:
+        print(str(e))
+        print("A workaround for this issue is to remove all non roman characters from the computer name")
+        print("More info here: https://codeberg.org/RemixDev/deemix-pyweb/issues/28")
 
 def shutdown_handler(signalnum, frame):
     shutdown()
