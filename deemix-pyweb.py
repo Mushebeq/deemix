@@ -36,6 +36,7 @@ class LoginWindow(QDialog):
         self.webview = QWebEngineView()
         profile = QWebEngineProfile(self.webview)
         profile.setPersistentCookiesPolicy(QWebEngineProfile.NoPersistentCookies)
+        profile.setPersistentStoragePath(str(configFolder / "QtWebEngine" / "Storage" / "OffTheRecord"))
         self.page = self.CustomPage(profile, self.webview)
         self.page.loadFinished.connect(self.checkURL)
         self.webview.setPage(self.page)
@@ -62,8 +63,8 @@ class MainWindow(QMainWindow):
     appLogin_trigger = pyqtSignal()
 
     class MainWebpage(QWebEnginePage):
-        def __init__(self, parent):
-            super().__init__(parent)
+        def __init__(self, profile, parent):
+            super().__init__(profile, parent)
             actions = [
                 QWebEnginePage.Back,
                 QWebEnginePage.Forward,
@@ -113,7 +114,10 @@ class MainWindow(QMainWindow):
         self.setWindowIcon(QIcon(str(appDir / 'icon.ico')))
         self.setMinimumSize(800, 600)
         self.webview = QWebEngineView()
-        self.page = self.MainWebpage(self.webview)
+        self.profile = QWebEngineProfile("Default", self.webview)
+        self.profile.setCachePath(str(configFolder / "QtWebEngine" / "Cache" / "Default"))
+        self.profile.setPersistentStoragePath(str(configFolder / "QtWebEngine" / "Storage" / "Default"))
+        self.page = self.MainWebpage(self.profile, self.webview)
         self.page.loadFinished.connect(self.finishLoading)
         self.webview.setPage(self.page)
         self.setCentralWidget(self.webview)
@@ -170,6 +174,7 @@ class MainWindow(QMainWindow):
             h = -1
         with open(configFolder / '.UIposition', 'w') as f:
             f.write("|".join([str(x),str(y),str(w),str(h)]))
+        self.page.deleteLater()
         event.accept()
 
     def finishLoading(self, ok):
@@ -227,6 +232,7 @@ if __name__ == '__main__':
         app = QApplication([])
         configFolder = portable or getConfigFolder()
         x,y,w,h = get_position()
+        makedirs(configFolder / "QtWebEngine", exist_ok=True)
         window = MainWindow('deemix', 'http://'+url+':'+str(port), x,y,w,h)
         t = Thread(target=run_server, args=(url, port, portable, window))
     else:
