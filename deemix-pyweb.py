@@ -8,6 +8,7 @@ import json
 import webbrowser
 
 from threading import Thread, Semaphore
+import signal
 import sys
 from pathlib import Path
 from os.path import sep as pathSep
@@ -213,9 +214,14 @@ def get_position():
         h = 600
     return (x,y,w,h)
 
+url = "127.0.0.1"
+port = 6595
+
+def server_shutdown_handler(signalnum, frame):
+    conn = HTTPConnection(url, port)
+    conn.request('GET', '/shutdown')
+
 if __name__ == '__main__':
-    url = "127.0.0.1"
-    port = 6595
     if len(sys.argv) >= 2:
         try:
             port = int(sys.argv[1])
@@ -229,6 +235,8 @@ if __name__ == '__main__':
     dev = '--dev' in sys.argv
 
     if not server:
+        signal.signal(signal.SIGINT, signal.SIG_DFL)
+        signal.signal(signal.SIGTERM, signal.SIG_DFL)
         app = QApplication([])
         configFolder = portable or getConfigFolder()
         x,y,w,h = get_position()
@@ -236,7 +244,9 @@ if __name__ == '__main__':
         window = MainWindow('deemix', 'http://'+url+':'+str(port), x,y,w,h)
         t = Thread(target=run_server, args=(url, port, portable, window))
     else:
-        t = Thread(target=run_server, args=(port, url, portable))
+        signal.signal(signal.SIGINT, server_shutdown_handler)
+        signal.signal(signal.SIGTERM, server_shutdown_handler)
+        t = Thread(target=run_server, args=(url, port, portable))
     t.daemon = True
     t.start()
 

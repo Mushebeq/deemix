@@ -80,6 +80,7 @@ socket_interface = SocketInterface()
 first_connection = True
 
 def shutdown():
+    print("Shutting down server")
     if app is not None:
         app.shutdown(socket_interface)
     socketio.stop()
