@@ -131,8 +131,8 @@ def on_connect():
             'currentItem': currentItem
         })
 
-    emit('init_home', app.get_home(session['dz']))
-    emit('init_charts', app.get_charts(session['dz']))
+    #emit('init_home', app.get_home(session['dz']))
+    #emit('init_charts', app.get_charts(session['dz']))
 
     if app.updateAvailable: emit('updateAvailable')
     if not app.isDeezerAvailable: emit('deezerNotAvailable')

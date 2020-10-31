@@ -61,20 +61,20 @@ class deemix:
     def checkForUpdates(self):
         commitFile = resource_path('version.txt')
         if commitFile.is_file():
-            print("Checking for updates...")
             with open(commitFile, 'r') as f:
                 self.currentVersion = f.read().strip()
-            try:
-                latestVersion = requests.get("https://deemix.app/pyweb/latest")
-                latestVersion.raise_for_status()
-                self.latestVersion = latestVersion.text.strip()
-            except:
-                self.latestVersion = None
-            self.updateAvailable = self.compareVersions()
-            if self.updateAvailable:
-                print("Update available! Commit: "+self.latestVersion)
-            else:
-                print("You're running the latest version")
+            #print("Checking for updates...")
+            #try:
+            #    latestVersion = requests.get("https://deemix.app/pyweb/latest")
+            #    latestVersion.raise_for_status()
+            #    self.latestVersion = latestVersion.text.strip()
+            #except:
+            #    self.latestVersion = None
+            #self.updateAvailable = self.compareVersions()
+            #if self.updateAvailable:
+            #    print("Update available! Commit: "+self.latestVersion)
+            #else:
+            #    print("You're running the latest version")
 
     def compareVersions(self):
         if not self.latestVersion or not self.currentVersion:
@@ -93,9 +93,11 @@ class deemix:
              return False
 
     def checkDeezerAvailability(self):
+        print("Pinging deezer.com...")
         body = requests.get("https://www.deezer.com/", headers={'Cookie': 'dz_lang=en; Domain=deezer.com; Path=/; Secure; hostOnly=false;'}).text
         title = body[body.find('<title>')+7:body.find('</title>')]
         self.isDeezerAvailable = title.strip() != "Deezer will soon be available in your country."
+        print(f"deezer.com reached: {'Available' if self.isDeezerAvailable else 'Not Available'}")
 
     def shutdown(self, interface=None):
         if self.set.settings['saveDownloadQueue']:
