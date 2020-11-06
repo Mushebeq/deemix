@@ -10,9 +10,9 @@ NOTES:
 
 After installing Python open a terminal/command prompt in the app folder and install the dependencies using `python3 -m pip install -U -r requirements.txt --user`
 
-If you're using git to get this repo you should use `git submodule update --init --recursive` as well. If you're just downloading the archive.zip, make sure you download and extract [deemix-webui](https://codeberg.org/RemixDev/deemix-webui) into the webui folder.
+If you're using git to get this repo you should use `git submodule update --init --recursive` as well. If you're just downloading the archive.zip, make sure you download and extract [deemix-webui](https://git.fuwafuwa.moe/RemixDev/deemix-webui) into the webui folder.
 
-Having an hard time following these steps? You could try these [tools](https://codeberg.org/RemixDev/deemix-tools)
+Having an hard time following these steps? You could try these [tools](https://git.fuwafuwa.moe/RemixDev/deemix-tools)
 
 ## Using the app
 ### GUI
@@ -30,7 +30,7 @@ If you want to set a default arl for all connecting clients you can use the `--s
 The `--portable` flags creates a local folder for the configs allowing to start the app without creating permanent folders on the host machine.
 
 ## Feature requests
-Before asking for a feature [check this out](https://codeberg.org/RemixDev/deemix-pyweb/src/branch/main/FEATURES.md)
+Before asking for a feature [check this out](https://git.fuwafuwa.moe/RemixDev/deemix-pyweb/src/branch/main/FEATURES.md)
 
 # License
 This program is free software: you can redistribute it and/or modify
