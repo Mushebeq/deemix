@@ -241,7 +241,7 @@ if __name__ == '__main__':
         configFolder = portable or getConfigFolder()
         x,y,w,h = get_position()
         makedirs(configFolder / "QtWebEngine", exist_ok=True)
-        window = MainWindow('deemix', 'http://'+url+':'+str(port), x,y,w,h)
+        window = MainWindow('deemix', 'http://localhost:'+str(port), x,y,w,h)
         t = Thread(target=run_server, args=(url, port, portable, window))
     else:
         signal.signal(signal.SIGINT, server_shutdown_handler)
