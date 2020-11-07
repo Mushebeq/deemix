@@ -349,7 +349,7 @@ def run_server(host="127.0.0.1", port=6595, portable=None, guiWindow=None, serve
     except UnicodeDecodeError as e:
         print(str(e))
         print("A workaround for this issue is to remove all non roman characters from the computer name")
-        print("More info here: https://git.fuwafuwa.moe/RemixDev/deemix-pyweb/issues/4")
+        print("More info here: https://bugs.python.org/issue26227")
 
 def shutdown_handler(signalnum, frame):
     shutdown()
