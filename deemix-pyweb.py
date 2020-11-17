@@ -67,8 +67,6 @@ class MainWindow(QMainWindow):
         def __init__(self, profile, parent):
             super().__init__(profile, parent)
             actions = [
-                QWebEnginePage.Back,
-                QWebEnginePage.Forward,
                 QWebEnginePage.Stop,
                 QWebEnginePage.Reload,
                 QWebEnginePage.ReloadAndBypassCache,
@@ -82,7 +80,8 @@ class MainWindow(QMainWindow):
                 QWebEnginePage.DownloadMediaToDisk,
                 QWebEnginePage.InspectElement,
                 QWebEnginePage.RequestClose,
-                QWebEnginePage.SavePage
+                QWebEnginePage.SavePage,
+                QWebEnginePage.ViewSource
             ]
             for a in actions:
                 self.action(a).setVisible(False)
