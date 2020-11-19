@@ -31,6 +31,7 @@ yarn-error.log*
 # Development stuff
 /config.py
 deemix
+deezer
 webview
 config
 commit.txt
