@@ -221,30 +221,30 @@ class deemix:
     def updateUserPlaylists(self, dz):
         user_id = dz.current_user['id']
         try:
-            return dz.api.get_user_playlists(user_id)['data']
+            return dz.api.get_user_playlists(user_id, limit=-1)['data']
         except:
-            return dz.gw.get_user_playlists(user_id)
+            return dz.gw.get_user_playlists(user_id, limit=-1)
 
     def updateUserAlbums(self, dz):
         user_id = dz.current_user['id']
         try:
-            return dz.api.get_user_albums(user_id)['data']
+            return dz.api.get_user_albums(user_id, limit=-1)['data']
         except:
-            return dz.gw.get_user_albums(user_id)
+            return dz.gw.get_user_albums(user_id, limit=-1)
 
     def updateUserArtists(self, dz):
         user_id = dz.current_user['id']
         try:
-            return dz.api.get_user_artists(user_id)['data']
+            return dz.api.get_user_artists(user_id, limit=-1)['data']
         except:
-            return dz.gw.get_user_artists(user_id)
+            return dz.gw.get_user_artists(user_id, limit=-1)
 
     def updateUserTracks(self, dz):
         user_id = dz.current_user['id']
         try:
-            return dz.api.get_user_tracks(user_id)['data']
+            return dz.api.get_user_tracks(user_id, limit=-1)['data']
         except:
-            return dz.gw.get_user_tracks(user_id)
+            return dz.gw.get_user_tracks(user_id, limit=-1)
 
     def getSpotifyPlaylistTracklist(self, id):
         if id == "" or not self.sp.spotifyEnabled:
