@@ -17,9 +17,9 @@ from flask import Flask, render_template, request, session, redirect, copy_curre
 from flask_socketio import SocketIO, emit
 from werkzeug.middleware.proxy_fix import ProxyFix
 
+from deezer import Deezer
 from deemix import __version__ as deemix_version
 from app import deemix, LoginStatus, resource_path
-from deemix.api.deezer import Deezer
 from deemix.app.messageinterface import MessageInterface
 
 # Workaround for MIME type error in certain Windows installs
@@ -158,7 +158,7 @@ def login(arl, force=False, child=0):
     global first_connection
 
     if not app.isDeezerAvailable:
-        emit('logged_in', {'status': LoginStatus.NOT_AVAILABLE, 'arl': arl, 'user': session['dz'].user})
+        emit('logged_in', {'status': LoginStatus.NOT_AVAILABLE, 'arl': arl, 'user': session['dz'].current_user})
         return
 
     if child == None: child = 0
@@ -169,7 +169,7 @@ def login(arl, force=False, child=0):
     result = app.login(session['dz'], arl, int(child))
     if force and result == LoginStatus.SUCCESS: result = LoginStatus.FORCED_SUCCESS
 
-    emit('logged_in', {'status': result, 'arl': arl, 'user': session['dz'].user})
+    emit('logged_in', {'status': result, 'arl': arl, 'user': session['dz'].current_user})
     if first_connection and result in [LoginStatus.SUCCESS, LoginStatus.FORCED_SUCCESS]:
         first_connection = False
         app.restoreDownloadQueue(session['dz'], socket_interface)
@@ -203,26 +203,27 @@ def search(data):
         result['ack'] = data.get('ack')
         emit('search', result)
 
-@socketio.on('albumSearch')
-def albumSearch(data):
-    if data['term'].strip() != "":
-        albums = app.searchAlbum(session['dz'], data['term'], data['start'], data['nb'])
-        output = {
-            'data': albums,
-            'total': len(albums),
-            'ack': data.get('ack')
-        };
-        emit('albumSearch', output)
-
-@socketio.on('newReleases')
-def newReleases(data):
-    result = app.newReleases(session['dz'])
-    output = {
-        'data': result,
-        'total': len(result),
-        'ack': data.get('ack')
-    };
-    emit('newReleases', output)
+# Needs to be reimplemented in deezer-py
+# @socketio.on('albumSearch')
+# def albumSearch(data):
+#     if data['term'].strip() != "":
+#         albums = app.searchAlbum(session['dz'], data['term'], data['start'], data['nb'])
+#         output = {
+#             'data': albums,
+#             'total': len(albums),
+#             'ack': data.get('ack')
+#         };
+#         emit('albumSearch', output)
+#
+# @socketio.on('newReleases')
+# def newReleases(data):
+#     result = app.newReleases(session['dz'])
+#     output = {
+#         'data': result,
+#         'total': len(result),
+#         'ack': data.get('ack')
+#     };
+#     emit('newReleases', output)
 
 @socketio.on('queueRestored')
 def queueRestored():
@@ -266,7 +267,7 @@ def analyzeLink(link):
 
 @socketio.on('getChartTracks')
 def getChartTracks(id):
-    emit('setChartTracks', session['dz'].get_playlist_tracks(id)['data'])
+    emit('setChartTracks', session['dz'].api.get_playlist_tracks(id)['data'])
 
 @socketio.on('update_userFavorites')
 def update_userFavorites():
@@ -327,7 +328,7 @@ def applogin():
             if arl:
                 emit('applogin_arl', arl)
         else:
-            emit('logged_in', {'status': 2, 'user': session['dz'].user})
+            emit('logged_in', {'status': 2, 'user': session['dz'].current_user})
     else:
         print("Can't open login page, you're not running the gui")
 

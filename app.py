@@ -2,7 +2,8 @@
 import eventlet
 requests = eventlet.import_patched('requests')
 
-from deemix.api.deezer import Deezer
+from deezer import Deezer
+from deezer.utils import clean_search_query
 from deemix.app.settings import Settings, DEFAULT_SETTINGS
 from deemix.app.queuemanager import QueueManager
 from deemix.app.spotifyhelper import SpotifyHelper, emptyPlaylist as emptySpotifyPlaylist
@@ -144,7 +145,7 @@ class deemix:
 
     def get_charts(self, dz):
         if len(self.chartsList) == 0:
-            temp = dz.get_charts_countries()
+            temp = dz.api.get_countries_charts()
             countries = []
             for i in range(len(temp)):
                 countries.append({
@@ -159,7 +160,7 @@ class deemix:
 
     def get_home(self, dz):
         if not self.homeCache:
-            self.homeCache = dz.get_charts()
+            self.homeCache = dz.api.get_chart()
         return self.homeCache
 
     def getDownloadFolder(self):
@@ -167,8 +168,8 @@ class deemix:
 
     def getTracklist(self, dz, data):
         if data['type'] == 'artist':
-            artistAPI = dz.get_artist(data['id'])
-            artistAPI['releases'] = dz.get_artist_discography_gw(data['id'], 100)
+            artistAPI = dz.api.get_artist(data['id'])
+            artistAPI['releases'] = dz.gw.get_artist_discography_tabs(data['id'], 100)
             return artistAPI
         elif data['type'] == 'spotifyplaylist':
             playlistAPI = self.getSpotifyPlaylistTracklist(data['id'])
@@ -177,8 +178,8 @@ class deemix:
                 playlistAPI['tracks'][i]['selected'] = False
             return playlistAPI
         else:
-            releaseAPI = getattr(dz, 'get_' + data['type'])(data['id'])
-            releaseTracksAPI = getattr(dz, 'get_' + data['type'] + '_tracks')(data['id'])['data']
+            releaseAPI = getattr(dz.api, 'get_' + data['type'])(data['id'])
+            releaseTracksAPI = getattr(dz.api, 'get_' + data['type'] + '_tracks')(data['id'])['data']
             tracks = []
             showdiscs = False
             if data['type'] == 'album' and len(releaseTracksAPI) and releaseTracksAPI[-1]['disk_number'] != 1:
@@ -196,17 +197,17 @@ class deemix:
     def getUserFavorites(self, dz):
         result = {}
         if dz.logged_in:
-            user_id = dz.user['id']
+            user_id = dz.current_user['id']
             try:
-                result['playlists'] = dz.get_user_playlists(user_id)['data']
-                result['albums'] = dz.get_user_albums(user_id)['data']
-                result['artists'] = dz.get_user_artists(user_id)['data']
-                result['tracks'] = dz.get_user_tracks(user_id)['data']
+                result['playlists'] = dz.api.get_user_playlists(user_id)['data']
+                result['albums'] = dz.api.get_user_albums(user_id)['data']
+                result['artists'] = dz.api.get_user_artists(user_id)['data']
+                result['tracks'] = dz.api.get_user_tracks(user_id)['data']
             except:
-                result['playlists'] = dz.get_user_playlists_gw(user_id)
-                result['albums'] = dz.get_user_albums_gw(user_id)
-                result['artists'] = dz.get_user_artists_gw(user_id)
-                result['tracks'] = dz.get_user_tracks_gw(user_id)
+                result['playlists'] = dz.gw.get_user_playlists(user_id)
+                result['albums'] = dz.gw.get_user_albums(user_id)
+                result['artists'] = dz.gw.get_user_artists(user_id)
+                result['tracks'] = dz.gw.get_user_tracks(user_id)
         return result
 
     def updateUserSpotifyPlaylists(self, user):
@@ -218,32 +219,32 @@ class deemix:
             return []
 
     def updateUserPlaylists(self, dz):
-        user_id = dz.user['id']
+        user_id = dz.current_user['id']
         try:
-            return dz.get_user_playlists(user_id)['data']
+            return dz.api.get_user_playlists(user_id)['data']
         except:
-            return dz.get_user_playlists_gw(user_id)
+            return dz.gw.get_user_playlists(user_id)
 
     def updateUserAlbums(self, dz):
-        user_id = dz.user['id']
+        user_id = dz.current_user['id']
         try:
-            return dz.get_user_albums(user_id)['data']
+            return dz.api.get_user_albums(user_id)['data']
         except:
-            return dz.get_user_albums_gw(user_id)
+            return dz.gw.get_user_albums(user_id)
 
     def updateUserArtists(self, dz):
-        user_id = dz.user['id']
+        user_id = dz.current_user['id']
         try:
-            return dz.get_user_artists(user_id)['data']
+            return dz.api.get_user_artists(user_id)['data']
         except:
-            return dz.get_user_artists_gw(user_id)
+            return dz.gw.get_user_artists(user_id)
 
     def updateUserTracks(self, dz):
-        user_id = dz.user['id']
+        user_id = dz.current_user['id']
         try:
-            return dz.get_user_tracks(user_id)['data']
+            return dz.api.get_user_tracks(user_id)['data']
         except:
-            return dz.get_user_tracks_gw(user_id)
+            return dz.gw.get_user_tracks(user_id)
 
     def getSpotifyPlaylistTracklist(self, id):
         if id == "" or not self.sp.spotifyEnabled:
@@ -252,16 +253,62 @@ class deemix:
 
     # Search functions
     def mainSearch(self, dz, term):
-        return dz.search_main_gw(term)
+        results = dz.gw.search(clean_search_query(term))
+        order = []
+        for x in results['ORDER']:
+            if x in ['TOP_RESULT', 'TRACK', 'ALBUM', 'ARTIST', 'PLAYLIST']:
+                order.append(x)
+        if 'TOP_RESULT' in results and len(results['TOP_RESULT']):
+            orig_top_result = results['TOP_RESULT'][0]
+            top_result = {}
+            top_result['type'] = orig_top_result['__TYPE__']
+            if top_result['type'] == 'artist':
+                top_result['id'] = orig_top_result['ART_ID']
+                top_result['picture'] = 'https://e-cdns-images.dzcdn.net/images/artist/' + orig_top_result['ART_PICTURE']
+                top_result['title'] = orig_top_result['ART_NAME']
+                top_result['nb_fan'] = orig_top_result['NB_FAN']
+            elif top_result['type'] == 'album':
+                top_result['id'] = orig_top_result['ALB_ID']
+                top_result['picture'] = 'https://e-cdns-images.dzcdn.net/images/cover/' + orig_top_result['ALB_PICTURE']
+                top_result['title'] = orig_top_result['ALB_TITLE']
+                top_result['artist'] = orig_top_result['ART_NAME']
+                top_result['nb_song'] = orig_top_result['NUMBER_TRACK']
+            elif top_result['type'] == 'playlist':
+                top_result['id'] = orig_top_result['PLAYLIST_ID']
+                top_result['picture'] = 'https://e-cdns-images.dzcdn.net/images/' + orig_top_result['PICTURE_TYPE'] + '/' + orig_top_result['PLAYLIST_PICTURE']
+                top_result['title'] = orig_top_result['TITLE']
+                top_result['artist'] = orig_top_result['PARENT_USERNAME']
+                top_result['nb_song'] = orig_top_result['NB_SONG']
+            else:
+                top_result['id'] = "0"
+                top_result['picture'] = 'https://e-cdns-images.dzcdn.net/images/cover'
+            top_result['picture'] += '/156x156-000000-80-0-0.jpg'
+            top_result['link'] = 'https://deezer.com/'+top_result['type']+'/'+str(top_result['id'])
+            results['TOP_RESULT'][0] = top_result
+        results['ORDER'] = order
+        return results
 
     def search(self, dz, term, type, start, nb):
-        return dz.search(term, type, nb, start)
+        if type == "album":
+            return dz.api.search_album(clean_search_query(term), limit=nb, index=start)
+        if type == "artist":
+            return dz.api.search_artist(clean_search_query(term), limit=nb, index=start)
+        if type == "playlist":
+            return dz.api.search_playlist(clean_search_query(term), limit=nb, index=start)
+        if type == "radio":
+            return dz.api.search_radio(clean_search_query(term), limit=nb, index=start)
+        if type == "track":
+            return dz.api.search_track(clean_search_query(term), limit=nb, index=start)
+        if type == "user":
+            return dz.api.search_user(clean_search_query(term), limit=nb, index=start)
+        return dz.api.search(clean_search_query(term), limit=nb, index=start)
 
-    def searchAlbum(self, dz, term, start, nb):
-        return dz.search_album_gw(term, start, nb)
-
-    def newReleases(self, dz):
-        return dz.get_new_releases()
+    # Needs to be reimplemented in deezer-py
+    # def searchAlbum(self, dz, term, start, nb):
+    #     return None #dz.search_album_gw(term, start, nb)
+    #
+    # def newReleases(self, dz):
+    #     return None #dz.get_new_releases()
 
     # Queue functions
     def addToQueue(self, dz, url, bitrate=None, interface=None, ack=None):
@@ -288,7 +335,7 @@ class deemix:
         type = getTypeFromLink(link)
         relID = getIDFromLink(link, type)
         if type in ["track", "album"]:
-            data = getattr(dz, 'get_' + type)(relID)
+            data = getattr(dz.api, 'get_' + type)(relID)
         else:
             data = {}
         return (type, data)

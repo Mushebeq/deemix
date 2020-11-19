@@ -1,4 +1,5 @@
-deemix>=1.5.0
+deemix>=2.0.1
+deezer-py
 flask
 flask-socketio
 eventlet
