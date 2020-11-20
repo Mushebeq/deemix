@@ -199,15 +199,15 @@ class deemix:
         if dz.logged_in:
             user_id = dz.current_user['id']
             try:
-                result['playlists'] = dz.api.get_user_playlists(user_id)['data']
-                result['albums'] = dz.api.get_user_albums(user_id)['data']
-                result['artists'] = dz.api.get_user_artists(user_id)['data']
-                result['tracks'] = dz.api.get_user_tracks(user_id)['data']
+                result['playlists'] = dz.api.get_user_playlists(user_id, limit=-1)['data']
+                result['albums'] = dz.api.get_user_albums(user_id, limit=-1)['data']
+                result['artists'] = dz.api.get_user_artists(user_id, limit=-1)['data']
+                result['tracks'] = dz.api.get_user_tracks(user_id, limit=-1)['data']
             except:
-                result['playlists'] = dz.gw.get_user_playlists(user_id)
-                result['albums'] = dz.gw.get_user_albums(user_id)
-                result['artists'] = dz.gw.get_user_artists(user_id)
-                result['tracks'] = dz.gw.get_user_tracks(user_id)
+                result['playlists'] = dz.gw.get_user_playlists(user_id, limit=-1)
+                result['albums'] = dz.gw.get_user_albums(user_id, limit=-1)
+                result['artists'] = dz.gw.get_user_artists(user_id, limit=-1)
+                result['tracks'] = dz.gw.get_user_tracks(user_id, limit=-1)
         return result
 
     def updateUserSpotifyPlaylists(self, user):
