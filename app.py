@@ -160,7 +160,7 @@ class deemix:
 
     def get_home(self, dz):
         if not self.homeCache:
-            self.homeCache = dz.api.get_chart()
+            self.homeCache = dz.api.get_chart(limit=30)
         return self.homeCache
 
     def getDownloadFolder(self):
