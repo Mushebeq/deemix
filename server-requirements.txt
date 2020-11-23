@@ -1,4 +1,4 @@
-deemix>=2.0.1
+deemix>=2.0.3
 deezer-py
 flask
 flask-socketio
