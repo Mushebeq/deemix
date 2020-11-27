@@ -13,8 +13,9 @@ from deemix.utils.localpaths import getConfigFolder
 
 from pathlib import Path
 import json
+import re
 
-from datetime import datetime
+from datetime import datetime, timedelta
 
 def resource_path(relative_path):
     """ Get absolute path to resource, works for dev and for PyInstaller """
@@ -303,13 +304,72 @@ class deemix:
             return dz.api.search_user(clean_search_query(term), limit=nb, index=start)
         return dz.api.search(clean_search_query(term), limit=nb, index=start)
 
-    # Needs to be reimplemented in deezer-py
-    # def searchAlbum(self, dz, term, start, nb):
-    #     return None #dz.search_album_gw(term, start, nb)
-    #
-    # def newReleases(self, dz):
-    #     return None #dz.get_new_releases()
+    def getAlbumDetails(self, dz, album_id):
+        result = dz.gw.get_album_page(album_id)
+        output = result['DATA']
 
+        duration = 0
+        for x in result['SONGS']['data']:
+            try:
+                duration += int(x['DURATION'])
+            except:
+                pass
+
+        output['DURATION'] = duration
+        output['NUMBER_TRACK'] = result['SONGS']['total']
+        output['LINK'] = f"https://deezer.com/album/{str(output['ALB_ID'])}"
+
+        return output
+
+    def searchAlbum(self, dz, term, start, nb):
+        results = dz.gw.search_music(clean_search_query(term), "ALBUM", start, nb)['data']
+
+        ids = [x['ALB_ID'] for x in results]
+
+        def albumDetailsWorker(album_id):
+            return self.getAlbumDetails(dz, album_id)
+        pool = eventlet.GreenPool(100)
+        albums = [a for a in pool.imap(albumDetailsWorker, ids)]
+
+        return albums
+
+    def channelNewReleases(self, dz, channel_name):
+        channel_data = dz.gw.get_page(channel_name)
+        pattern = '^New.*releases$'
+        new_releases = next((x for x in channel_data['sections'] if re.match(pattern, x['title'])), None)
+
+        if new_releases is None:
+            return []
+        
+        show_all = dz.gw.get_page(new_releases['target'])
+        albums = [x['data'] for x in show_all['sections'][0]['items']]
+        return albums
+
+    def newReleases(self, dz):
+        explore = dz.gw.get_page('channels/explore')
+        music_section = next((x for x in explore['sections'] if x['title'] == 'Music'), None)
+        channels = [x['target'] for x in music_section['items']]
+
+        def channelWorker(channel):
+            return self.channelNewReleases(dz, channel)
+        pool = eventlet.GreenPool(100)
+        new_releases_lists = [x for x in pool.imap(channelWorker, channels[1:10])]
+
+        seen = set()
+        new_releases = [seen.add(x['ALB_ID']) or x for list in new_releases_lists for x in list if x['ALB_ID'] not in seen]
+        new_releases.sort(key=lambda x: x['DIGITAL_RELEASE_DATE'], reverse=True)
+
+        now = datetime.now()
+        delta = timedelta(days=8)
+        recent_releases = [x for x in new_releases if now - datetime.strptime(x['DIGITAL_RELEASE_DATE'], "%Y-%m-%d") < delta]
+        recent_releases.sort(key=lambda x: x['ALB_ID'], reverse=True)
+
+        def albumDetailsWorker(album_id):
+            return self.getAlbumDetails(dz, album_id)
+        albums = [a for a in pool.imap(albumDetailsWorker, [x['ALB_ID'] for x in recent_releases])]
+
+        return albums
+    
     # Queue functions
     def addToQueue(self, dz, url, bitrate=None, interface=None, ack=None):
         if ';' in url:
