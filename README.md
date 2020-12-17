@@ -6,7 +6,7 @@ NOTES:
 - Python 3 is required for this app. Make sure you tick the option to add Python to PATH when installing.
 - If `python3` is "not a recognized command" try using `python` instead.
 - If you're having issues with the package `wheel` missing use: `python3 -m pip install setuptools wheel --user`
-- If you're on Windows Python 3.8 is not supported, you'll need to use Python 3.7 or 3.6
+- Python 3.9 is not supported, you'll need to use Python 3.8
 
 After installing Python open a terminal/command prompt in the app folder and install the dependencies using `python3 -m pip install -U -r requirements.txt --user`
 
