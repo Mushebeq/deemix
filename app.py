@@ -96,7 +96,11 @@ class deemix:
 
     def checkDeezerAvailability(self):
         print("Pinging deezer.com...")
-        body = requests.get("https://www.deezer.com/", headers={'Cookie': 'dz_lang=en; Domain=deezer.com; Path=/; Secure; hostOnly=false;'}).text
+        try:
+            body = requests.get("https://www.deezer.com/", headers={'Cookie': 'dz_lang=en; Domain=deezer.com; Path=/; Secure; hostOnly=false;'}).text
+        except Exception as e:
+            self.isDeezerAvailable = False
+            print(f"deezer.com not reached! {str(e)}")
         title = body[body.find('<title>')+7:body.find('</title>')]
         self.isDeezerAvailable = title.strip() != "Deezer will soon be available in your country."
         print(f"deezer.com reached: {'Available' if self.isDeezerAvailable else 'Not Available'}")
@@ -340,7 +344,7 @@ class deemix:
 
         if new_releases is None:
             return []
-        
+
         show_all = dz.gw.get_page(new_releases['target'])
         albums = [x['data'] for x in show_all['sections'][0]['items']]
         return albums
@@ -369,7 +373,7 @@ class deemix:
         albums = [a for a in pool.imap(albumDetailsWorker, [x['ALB_ID'] for x in recent_releases])]
 
         return albums
-    
+
     # Queue functions
     def addToQueue(self, dz, url, bitrate=None, interface=None, ack=None):
         if ';' in url:
