@@ -342,12 +342,18 @@ class deemix:
         pattern = '^New.*releases$'
         new_releases = next((x for x in channel_data['sections'] if re.match(pattern, x['title'])), None)
 
-        if new_releases is None:
+        try:
+            if new_releases is None:
+                return []
+            elif 'target' in new_releases:
+                show_all = dz.gw.get_page(new_releases['target'])
+                return [x['data'] for x in show_all['sections'][0]['items']]
+            elif 'items' in new_releases:
+                return [x['data'] for x in new_releases['items']]
+            else:
+                return []
+        except Exception:
             return []
-
-        show_all = dz.gw.get_page(new_releases['target'])
-        albums = [x['data'] for x in show_all['sections'][0]['items']]
-        return albums
 
     def newReleases(self, dz):
         explore = dz.gw.get_page('channels/explore')
